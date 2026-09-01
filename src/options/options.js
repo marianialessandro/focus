@@ -16,9 +16,34 @@ const scheduleMessage = document.getElementById("schedule-message");
 const addScheduleButton = document.getElementById("add-schedule");
 const saveSchedulesButton = document.getElementById("save-schedules");
 const themeSelect = document.getElementById("theme-select");
+const navigationItems = [...document.querySelectorAll(".nav-item")];
+const settingsViews = [...document.querySelectorAll(".settings-view")];
 
 let schedules = [];
 let currentTheme = "system";
+
+function showSettingsSection(sectionId, updateLocation = true) {
+  const selectedView = settingsViews.find((view) => view.id === sectionId) || settingsViews[0];
+
+  settingsViews.forEach((view) => {
+    view.hidden = view !== selectedView;
+  });
+
+  navigationItems.forEach((item) => {
+    const isActive = item.dataset.section === selectedView.id;
+    item.classList.toggle("is-active", isActive);
+
+    if (isActive) {
+      item.setAttribute("aria-current", "page");
+    } else {
+      item.removeAttribute("aria-current");
+    }
+  });
+
+  if (updateLocation) {
+    history.replaceState(null, "", `#${selectedView.id}`);
+  }
+}
 
 function createScheduleId() {
   return `schedule-${Date.now()}-${Math.random().toString(16).slice(2)}`;
@@ -283,6 +308,12 @@ themeSelect.addEventListener("change", async () => {
   currentTheme = selectedTheme;
 });
 
+navigationItems.forEach((item) => {
+  item.addEventListener("click", () => {
+    showSettingsSection(item.dataset.section);
+  });
+});
+
 addScheduleButton.addEventListener("click", () => {
   scheduleList.append(createScheduleCard({
     id: createScheduleId(),
@@ -332,4 +363,5 @@ saveSchedulesButton.addEventListener("click", async () => {
   showMessage("Modifiche salvate.", "success");
 });
 
+showSettingsSection(location.hash.slice(1) || "schedules", false);
 loadSettings();

@@ -10,14 +10,48 @@
 </head>
 
 <body>
-  <main class="options-container">
-    <header class="page-header">
-      <p class="eyebrow">Focus Blocker</p>
-      <h1>Impostazioni</h1>
-      <p class="page-description">Configura quando attivare automaticamente il blocco.</p>
-    </header>
+  <div class="options-shell">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span>Focus Blocker</span>
+      </div>
 
-    <section class="settings-panel" aria-labelledby="schedules-title">
+      <nav class="sidebar-nav" aria-label="Sezioni impostazioni">
+        <button class="nav-item is-active" type="button" data-section="schedules" aria-current="page">
+          <!-- Calendar Clock icon from Lucide, licensed under ISC: https://lucide.dev/license. -->
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M21 7.5V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h3.5"></path>
+            <path d="M16 2v4M8 2v4M3 10h5M17.5 17.5 16 16.3V14"></path>
+            <circle cx="16" cy="16" r="6"></circle>
+          </svg>
+          <span>Schedule</span>
+        </button>
+
+        <button class="nav-item" type="button" data-section="appearance">
+          <!-- Palette icon from Lucide, licensed under ISC: https://lucide.dev/license. -->
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4A1.75 1.75 0 0 1 12 22Z"></path>
+            <circle cx="7.5" cy="10.5" r=".5" fill="currentColor" stroke="none"></circle>
+            <circle cx="10.5" cy="7.5" r=".5" fill="currentColor" stroke="none"></circle>
+            <circle cx="14.5" cy="7.5" r=".5" fill="currentColor" stroke="none"></circle>
+            <circle cx="17.5" cy="10.5" r=".5" fill="currentColor" stroke="none"></circle>
+          </svg>
+          <span>Aspetto</span>
+        </button>
+      </nav>
+
+      <p class="icon-credit">Icone di <a href="https://lucide.dev" target="_blank" rel="noreferrer">Lucide</a>, licenza ISC.</p>
+    </aside>
+
+    <main class="options-content">
+      <header class="page-header">
+        <p class="eyebrow">Focus Blocker</p>
+        <h1>Impostazioni</h1>
+        <p class="page-description">Personalizza il comportamento dell’estensione.</p>
+      </header>
+
+    <section id="schedules" class="settings-panel settings-view" aria-labelledby="schedules-title">
       <div class="section-heading">
         <div>
           <h2 id="schedules-title">Schedule</h2>
@@ -42,7 +76,7 @@
       </div>
     </section>
 
-    <section class="settings-panel appearance-panel" aria-labelledby="appearance-title">
+    <section id="appearance" class="settings-panel settings-view appearance-panel" aria-labelledby="appearance-title" hidden>
       <div>
         <h2 id="appearance-title">Aspetto</h2>
         <p>Usa il tema del sistema oppure scegli una modalità fissa.</p>
@@ -58,8 +92,8 @@
       </label>
     </section>
 
-    <p class="icon-credit">Icone di <a href="https://lucide.dev" target="_blank" rel="noreferrer">Lucide</a>, licenza ISC.</p>
-  </main>
+    </main>
+  </div>
 
   <script src="options.js"></script>
 </body>
