@@ -1,7 +1,10 @@
 const DEFAULT_STATE = {
   manualBlocked: false,
   calendarBlocked: false,
-  activeEvent: null
+  activeEvent: null,
+  schedules: [],
+  scheduleBlocked: false,
+  activeSchedule: null
 };
 
 export async function getBlockState() {
@@ -10,7 +13,7 @@ export async function getBlockState() {
   return {
     ...state,
     effectiveBlocked:
-      state.manualBlocked || state.calendarBlocked
+      state.manualBlocked || state.calendarBlocked || state.scheduleBlocked
   };
 }
 
@@ -24,5 +27,16 @@ export async function setCalendarBlocked(enabled, activeEvent = null) {
   await chrome.storage.local.set({
     calendarBlocked: Boolean(enabled),
     activeEvent
+  });
+}
+
+export async function setSchedules(schedules) {
+  await chrome.storage.local.set({ schedules });
+}
+
+export async function setScheduleBlocked(enabled, activeSchedule = null) {
+  await chrome.storage.local.set({
+    scheduleBlocked: Boolean(enabled),
+    activeSchedule
   });
 }

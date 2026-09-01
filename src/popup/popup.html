@@ -26,9 +26,31 @@
       </span>
     </div>
 
-    <button id="toggle-button">
+    <button id="toggle-button" class="primary-button">
       Caricamento...
     </button>
+
+    <section class="schedules-section">
+      <div class="section-heading">
+        <div>
+          <h2>Schedule</h2>
+          <p>Scegli quando attivare automaticamente il blocco.</p>
+        </div>
+
+        <button id="add-schedule" class="icon-button" type="button" aria-label="Aggiungi schedule">
+          <svg class="add-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 5v14M5 12h14"></path>
+          </svg>
+        </button>
+      </div>
+
+      <div id="schedule-list"></div>
+
+      <p id="empty-schedules" class="empty-state">Nessuna fascia configurata.</p>
+      <p id="schedule-message" class="message" role="status"></p>
+
+      <button id="save-schedules" class="secondary-button" type="button">Salva schedule</button>
+    </section>
   </main>
 
   <script src="popup.js"></script>
