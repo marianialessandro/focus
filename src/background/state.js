@@ -4,7 +4,8 @@ const DEFAULT_STATE = {
   activeEvent: null,
   schedules: [],
   scheduleBlocked: false,
-  activeSchedule: null
+  activeSchedule: null,
+  theme: "system"
 };
 
 export async function getBlockState() {
@@ -39,4 +40,12 @@ export async function setScheduleBlocked(enabled, activeSchedule = null) {
     scheduleBlocked: Boolean(enabled),
     activeSchedule
   });
+}
+
+export async function setTheme(theme) {
+  if (!["system", "light", "dark"].includes(theme)) {
+    throw new Error("Tema non valido.");
+  }
+
+  await chrome.storage.local.set({ theme });
 }

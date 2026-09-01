@@ -1,9 +1,11 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="it" data-theme="system">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Impostazioni · Focus Blocker</title>
+  <script src="../shared/theme.js"></script>
+  <link rel="stylesheet" href="../shared/theme.css">
   <link rel="stylesheet" href="options.css">
 </head>
 
@@ -38,6 +40,22 @@
         <p id="schedule-message" class="message" role="status"></p>
         <button id="save-schedules" class="save-button" type="button">Salva modifiche</button>
       </div>
+    </section>
+
+    <section class="settings-panel appearance-panel" aria-labelledby="appearance-title">
+      <div>
+        <h2 id="appearance-title">Aspetto</h2>
+        <p>Usa il tema del sistema oppure scegli una modalità fissa.</p>
+      </div>
+
+      <label class="theme-field">
+        <span>Tema</span>
+        <select id="theme-select">
+          <option value="system">Sistema</option>
+          <option value="light">Chiaro</option>
+          <option value="dark">Scuro</option>
+        </select>
+      </label>
     </section>
 
     <p class="icon-credit">Icone di <a href="https://lucide.dev" target="_blank" rel="noreferrer">Lucide</a>, licenza ISC.</p>

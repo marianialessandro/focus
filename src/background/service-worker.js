@@ -1,6 +1,7 @@
 import {
   getBlockState,
-  setManualBlocked
+  setManualBlocked,
+  setTheme
 } from "./state.js";
 
 import {
@@ -62,6 +63,15 @@ async function handleSaveSchedules(schedules) {
   };
 }
 
+async function handleSetTheme(theme) {
+  await setTheme(theme);
+
+  return {
+    ok: true,
+    state: await getBlockState()
+  };
+}
+
 chrome.runtime.onInstalled.addListener(() => {
   ensureScheduleAlarm().then(refreshSchedulesAndBlocking).catch(console.error);
 });
@@ -109,6 +119,20 @@ chrome.runtime.onMessage.addListener(
 
       case "SAVE_SCHEDULES":
         handleSaveSchedules(message.schedules)
+          .then(sendResponse)
+          .catch((error) => {
+            console.error(error);
+
+            sendResponse({
+              ok: false,
+              error: error.message
+            });
+          });
+
+        return true;
+
+      case "SET_THEME":
+        handleSetTheme(message.theme)
           .then(sendResponse)
           .catch((error) => {
             console.error(error);

@@ -15,8 +15,10 @@ const emptySchedules = document.getElementById("empty-schedules");
 const scheduleMessage = document.getElementById("schedule-message");
 const addScheduleButton = document.getElementById("add-schedule");
 const saveSchedulesButton = document.getElementById("save-schedules");
+const themeSelect = document.getElementById("theme-select");
 
 let schedules = [];
+let currentTheme = "system";
 
 function createScheduleId() {
   return `schedule-${Date.now()}-${Math.random().toString(16).slice(2)}`;
@@ -247,7 +249,7 @@ function validateSchedules(scheduleValues) {
   return null;
 }
 
-async function loadSchedules() {
+async function loadSettings() {
   const response = await chrome.runtime.sendMessage({ type: "GET_BLOCK_STATE" });
 
   if (!response?.ok) {
@@ -256,8 +258,30 @@ async function loadSchedules() {
   }
 
   schedules = response.state.schedules;
+  currentTheme = response.state.theme;
+  themeSelect.value = currentTheme;
   renderSchedules();
 }
+
+themeSelect.addEventListener("change", async () => {
+  const selectedTheme = themeSelect.value;
+  themeSelect.disabled = true;
+
+  const response = await chrome.runtime.sendMessage({
+    type: "SET_THEME",
+    theme: selectedTheme
+  });
+
+  themeSelect.disabled = false;
+
+  if (!response?.ok) {
+    themeSelect.value = currentTheme;
+    showMessage(response?.error || "Impossibile cambiare il tema.", "error");
+    return;
+  }
+
+  currentTheme = selectedTheme;
+});
 
 addScheduleButton.addEventListener("click", () => {
   scheduleList.append(createScheduleCard({
@@ -308,4 +332,4 @@ saveSchedulesButton.addEventListener("click", async () => {
   showMessage("Modifiche salvate.", "success");
 });
 
-loadSchedules();
+loadSettings();
