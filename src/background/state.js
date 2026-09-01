@@ -5,7 +5,8 @@ const DEFAULT_STATE = {
   schedules: [],
   scheduleBlocked: false,
   activeSchedule: null,
-  theme: "system"
+  theme: "system",
+  blockedUrls: ["youtube.com", "instagram.com", "netflix.com"]
 };
 
 export async function getBlockState() {
@@ -48,4 +49,8 @@ export async function setTheme(theme) {
   }
 
   await chrome.storage.local.set({ theme });
+}
+
+export async function setBlockedUrls(blockedUrls) {
+  await chrome.storage.local.set({ blockedUrls });
 }

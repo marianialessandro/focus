@@ -13,6 +13,8 @@ import {
   saveSchedules
 } from "./schedules.js";
 
+import { saveBlockedUrls } from "./blocked-sites.js";
+
 const SCHEDULE_ALARM = "refresh-schedules";
 
 async function refreshSchedulesAndBlocking() {
@@ -69,6 +71,17 @@ async function handleSetTheme(theme) {
   return {
     ok: true,
     state: await getBlockState()
+  };
+}
+
+async function handleSaveBlockedUrls(blockedUrls) {
+  await saveBlockedUrls(blockedUrls);
+
+  const state = await refreshBlockingState();
+
+  return {
+    ok: true,
+    state
   };
 }
 
@@ -133,6 +146,20 @@ chrome.runtime.onMessage.addListener(
 
       case "SET_THEME":
         handleSetTheme(message.theme)
+          .then(sendResponse)
+          .catch((error) => {
+            console.error(error);
+
+            sendResponse({
+              ok: false,
+              error: error.message
+            });
+          });
+
+        return true;
+
+      case "SAVE_BLOCKED_URLS":
+        handleSaveBlockedUrls(message.blockedUrls)
           .then(sendResponse)
           .catch((error) => {
             console.error(error);

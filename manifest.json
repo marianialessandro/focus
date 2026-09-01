@@ -11,14 +11,7 @@
   ],
 
   "host_permissions": [
-    "*://*.youtube.com/*",
-    "*://youtube.com/*",
-
-    "*://*.instagram.com/*",
-    "*://instagram.com/*",
-
-    "*://*.netflix.com/*",
-    "*://netflix.com/*"
+    "<all_urls>"
   ],
 
   "background": {
