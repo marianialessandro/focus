@@ -1,0 +1,18 @@
+{
+    "sourceFile": "src/background/service-worker.js",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 0,
+            "patches": [
+                {
+                    "date": 1788263509547,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                }
+            ],
+            "date": 1788263509547,
+            "name": "Commit-0",
+            "content": "import {\n  getBlockState,\n  setManualBlocked\n} from \"./state.js\";\n\nimport {\n  refreshBlockingState\n} from \"./blocker.js\";\n\nasync function handleSetManualBlock(enabled) {\n  await setManualBlocked(enabled);\n\n  const state = await refreshBlockingState();\n\n  return {\n    ok: true,\n    state\n  };\n}\n\nasync function handleGetBlockState() {\n  const state = await getBlockState();\n\n  return {\n    ok: true,\n    state\n  };\n}\n\nchrome.runtime.onInstalled.addListener(() => {\n  refreshBlockingState().catch(console.error);\n});\n\nchrome.runtime.onStartup.addListener(() => {\n  refreshBlockingState().catch(console.error);\n});\n\nchrome.runtime.onMessage.addListener(\n  (message, _sender, sendResponse) => {\n    switch (message.type) {\n      case \"SET_MANUAL_BLOCK\":\n        handleSetManualBlock(message.enabled)\n          .then(sendResponse)\n          .catch((error) => {\n            console.error(error);\n\n            sendResponse({\n              ok: false,\n              error: error.message\n            });\n          });\n\n        return true;\n\n      case \"GET_BLOCK_STATE\":\n        handleGetBlockState()\n          .then(sendResponse)\n          .catch((error) => {\n            console.error(error);\n\n            sendResponse({\n              ok: false,\n              error: error.message\n            });\n          });\n\n        return true;\n\n      default:\n        return false;\n    }\n  }\n);"
+        }
+    ]
+}

@@ -21,18 +21,19 @@
   ],
 
   "background": {
-    "service_worker": "service-worker.js"
+    "service_worker": "src/background/service-worker.js",
+    "type": "module"
   },
 
   "action": {
-    "default_popup": "popup/popup.html"
+    "default_popup": "src/popup/popup.html"
   },
 
   "web_accessible_resources": [
     {
       "resources": [
-        "blocked/blocked.html",
-        "blocked/blocked.css"
+        "src/blocked/blocked.html",
+        "src/blocked/blocked.css"
       ],
       "matches": [
         "<all_urls>"

@@ -1,0 +1,18 @@
+{
+    "sourceFile": "src/background/state.js",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 0,
+            "patches": [
+                {
+                    "date": 1788263495941,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                }
+            ],
+            "date": 1788263495941,
+            "name": "Commit-0",
+            "content": "const DEFAULT_STATE = {\n  manualBlocked: false,\n  calendarBlocked: false,\n  activeEvent: null\n};\n\nexport async function getBlockState() {\n  const state = await chrome.storage.local.get(DEFAULT_STATE);\n\n  return {\n    ...state,\n    effectiveBlocked:\n      state.manualBlocked || state.calendarBlocked\n  };\n}\n\nexport async function setManualBlocked(enabled) {\n  await chrome.storage.local.set({\n    manualBlocked: Boolean(enabled)\n  });\n}\n\nexport async function setCalendarBlocked(enabled, activeEvent = null) {\n  await chrome.storage.local.set({\n    calendarBlocked: Boolean(enabled),\n    activeEvent\n  });\n}"
+        }
+    ]
+}

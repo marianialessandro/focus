@@ -1,0 +1,18 @@
+{
+    "sourceFile": "src/background/blocker.js",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 0,
+            "patches": [
+                {
+                    "date": 1788263502116,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                }
+            ],
+            "date": 1788263502116,
+            "name": "Commit-0",
+            "content": "import { getBlockState } from \"./state.js\";\n\nconst BLOCKING_RULES = [\n  {\n    id: 1,\n    priority: 1,\n    action: {\n      type: \"redirect\",\n      redirect: {\n        extensionPath: \"/src/blocked/blocked.html\"\n      }\n    },\n    condition: {\n      urlFilter: \"||youtube.com^\",\n      resourceTypes: [\"main_frame\"]\n    }\n  },\n  {\n    id: 2,\n    priority: 1,\n    action: {\n      type: \"redirect\",\n      redirect: {\n        extensionPath: \"/src/blocked/blocked.html\"\n      }\n    },\n    condition: {\n      urlFilter: \"||instagram.com^\",\n      resourceTypes: [\"main_frame\"]\n    }\n  },\n  {\n    id: 3,\n    priority: 1,\n    action: {\n      type: \"redirect\",\n      redirect: {\n        extensionPath: \"/src/blocked/blocked.html\"\n      }\n    },\n    condition: {\n      urlFilter: \"||netflix.com^\",\n      resourceTypes: [\"main_frame\"]\n    }\n  }\n];\n\nconst BLOCKING_RULE_IDS =\n  BLOCKING_RULES.map((rule) => rule.id);\n\nasync function enableBlocking() {\n  await chrome.declarativeNetRequest.updateDynamicRules({\n    removeRuleIds: BLOCKING_RULE_IDS,\n    addRules: BLOCKING_RULES\n  });\n}\n\nasync function disableBlocking() {\n  await chrome.declarativeNetRequest.updateDynamicRules({\n    removeRuleIds: BLOCKING_RULE_IDS\n  });\n}\n\nexport async function refreshBlockingState() {\n  const state = await getBlockState();\n\n  if (state.effectiveBlocked) {\n    await enableBlocking();\n  } else {\n    await disableBlocking();\n  }\n\n  return state;\n}"
+        }
+    ]
+}

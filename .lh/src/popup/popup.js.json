@@ -1,0 +1,18 @@
+{
+    "sourceFile": "src/popup/popup.js",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 0,
+            "patches": [
+                {
+                    "date": 1788263519728,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                }
+            ],
+            "date": 1788263519728,
+            "name": "Commit-0",
+            "content": "const toggleButton =\n  document.getElementById(\"toggle-button\");\n\nconst statusText =\n  document.getElementById(\"status-text\");\n\nconst statusIndicator =\n  document.getElementById(\"status-indicator\");\n\nlet manualBlocked = false;\n\nasync function loadState() {\n  const response = await chrome.runtime.sendMessage({\n    type: \"GET_BLOCK_STATE\"\n  });\n\n  if (!response?.ok) {\n    console.error(\n      \"Failed to load extension state:\",\n      response?.error\n    );\n\n    return;\n  }\n\n  manualBlocked = response.state.manualBlocked;\n\n  render();\n}\n\nfunction render() {\n  if (manualBlocked) {\n    statusText.textContent = \"Blocco attivo\";\n    statusIndicator.textContent = \"●\";\n    toggleButton.textContent = \"Disattiva blocco\";\n\n    return;\n  }\n\n  statusText.textContent = \"Blocco disattivato\";\n  statusIndicator.textContent = \"○\";\n  toggleButton.textContent = \"Blocca adesso\";\n}\n\ntoggleButton.addEventListener(\"click\", async () => {\n  const response = await chrome.runtime.sendMessage({\n    type: \"SET_MANUAL_BLOCK\",\n    enabled: !manualBlocked\n  });\n\n  if (!response?.ok) {\n    console.error(\n      \"Failed to update extension state:\",\n      response?.error\n    );\n\n    return;\n  }\n\n  manualBlocked = response.state.manualBlocked;\n\n  render();\n});\n\nloadState();"
+        }
+    ]
+}

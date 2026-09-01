@@ -1,3 +1,5 @@
+import { getBlockState } from "./state.js";
+
 const BLOCKING_RULES = [
   {
     id: 1,
@@ -5,7 +7,7 @@ const BLOCKING_RULES = [
     action: {
       type: "redirect",
       redirect: {
-        extensionPath: "/blocked/blocked.html"
+        extensionPath: "/src/blocked/blocked.html"
       }
     },
     condition: {
@@ -19,7 +21,7 @@ const BLOCKING_RULES = [
     action: {
       type: "redirect",
       redirect: {
-        extensionPath: "/blocked/blocked.html"
+        extensionPath: "/src/blocked/blocked.html"
       }
     },
     condition: {
@@ -33,7 +35,7 @@ const BLOCKING_RULES = [
     action: {
       type: "redirect",
       redirect: {
-        extensionPath: "/blocked/blocked.html"
+        extensionPath: "/src/blocked/blocked.html"
       }
     },
     condition: {
@@ -43,33 +45,30 @@ const BLOCKING_RULES = [
   }
 ];
 
-const RULE_IDS = BLOCKING_RULES.map((rule) => rule.id);
+const BLOCKING_RULE_IDS =
+  BLOCKING_RULES.map((rule) => rule.id);
 
 async function enableBlocking() {
   await chrome.declarativeNetRequest.updateDynamicRules({
-    removeRuleIds: RULE_IDS,
+    removeRuleIds: BLOCKING_RULE_IDS,
     addRules: BLOCKING_RULES
   });
 }
 
 async function disableBlocking() {
   await chrome.declarativeNetRequest.updateDynamicRules({
-    removeRuleIds: RULE_IDS
+    removeRuleIds: BLOCKING_RULE_IDS
   });
 }
 
-chrome.runtime.onMessage.addListener((message) => {
-  if (message.type === "SET_MANUAL_BLOCK") {
-    const enabled = message.enabled;
+export async function refreshBlockingState() {
+  const state = await getBlockState();
 
-    chrome.storage.local.set({
-      manualBlocked: enabled
-    });
-
-    if (enabled) {
-      return enableBlocking();
-    }
-
-    return disableBlocking();
+  if (state.effectiveBlocked) {
+    await enableBlocking();
+  } else {
+    await disableBlocking();
   }
-});
+
+  return state;
+}
