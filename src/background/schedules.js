@@ -8,6 +8,7 @@ import { normalizeBlockedUrls } from "./blocked-sites.js";
 
 const DAY_COUNT = 7;
 const TIME_PATTERN = /^([01]\d|2[0-3]):([0-5]\d)$/;
+const DATE_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
 
 function timeToMinutes(time) {
   const match = TIME_PATTERN.exec(time);
@@ -17,6 +18,37 @@ function timeToMinutes(time) {
   }
 
   return Number(match[1]) * 60 + Number(match[2]);
+}
+
+function isValidOptionalDate(value) {
+  if (value === "") {
+    return true;
+  }
+
+  if (typeof value !== "string") {
+    return false;
+  }
+
+  const match = DATE_PATTERN.exec(value);
+
+  if (!match) {
+    return false;
+  }
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const date = new Date(year, month - 1, day);
+
+  return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
+}
+
+function formatLocalDate(date) {
+  const year = String(date.getFullYear()).padStart(4, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
 }
 
 function isValidSchedule(schedule) {
@@ -31,8 +63,11 @@ function isValidSchedule(schedule) {
   const daysAreValid = schedule.days.every((day) => Number.isInteger(day) && day >= 0 && day < DAY_COUNT);
   const start = timeToMinutes(schedule.start);
   const end = timeToMinutes(schedule.end);
+  const startDate = schedule.startDate ?? "";
+  const endDate = schedule.endDate ?? "";
+  const dateRangeIsValid = isValidOptionalDate(startDate) && isValidOptionalDate(endDate) && (!startDate || !endDate || startDate <= endDate);
 
-  return daysAreValid && start !== null && end !== null && start !== end;
+  return daysAreValid && start !== null && end !== null && start !== end && dateRangeIsValid;
 }
 
 export function normalizeSchedules(schedules) {
@@ -46,6 +81,8 @@ export function normalizeSchedules(schedules) {
     days: [...new Set(schedule.days)].sort((first, second) => first - second),
     start: schedule.start,
     end: schedule.end,
+    startDate: schedule.startDate || "",
+    endDate: schedule.endDate || "",
     enabled: schedule.enabled !== false,
     additionalBlockedUrls: normalizeBlockedUrls(Array.isArray(schedule.additionalBlockedUrls) ? schedule.additionalBlockedUrls : []),
     excludedBlockedUrls: normalizeBlockedUrls(Array.isArray(schedule.excludedBlockedUrls) ? schedule.excludedBlockedUrls : [])
@@ -61,14 +98,29 @@ export function isScheduleActive(schedule, date = new Date()) {
   const end = timeToMinutes(schedule.end);
   const current = date.getHours() * 60 + date.getMinutes();
   const currentDay = date.getDay();
+  let occurrenceDate = null;
 
   if (start < end) {
-    return schedule.days.includes(currentDay) && current >= start && current < end;
+    if (schedule.days.includes(currentDay) && current >= start && current < end) {
+      occurrenceDate = date;
+    }
+  } else {
+    const previousDay = (currentDay + DAY_COUNT - 1) % DAY_COUNT;
+
+    if (schedule.days.includes(currentDay) && current >= start) {
+      occurrenceDate = date;
+    } else if (schedule.days.includes(previousDay) && current < end) {
+      occurrenceDate = new Date(date.getFullYear(), date.getMonth(), date.getDate() - 1);
+    }
   }
 
-  const previousDay = (currentDay + DAY_COUNT - 1) % DAY_COUNT;
+  if (!occurrenceDate) {
+    return false;
+  }
 
-  return (schedule.days.includes(currentDay) && current >= start) || (schedule.days.includes(previousDay) && current < end);
+  const occurrenceDateValue = formatLocalDate(occurrenceDate);
+
+  return (!schedule.startDate || occurrenceDateValue >= schedule.startDate) && (!schedule.endDate || occurrenceDateValue <= schedule.endDate);
 }
 
 export async function saveSchedules(schedules) {

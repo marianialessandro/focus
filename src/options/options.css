@@ -298,7 +298,8 @@ input:focus-visible {
 }
 
 .schedule-name,
-input[type="time"] {
+input[type="time"],
+input[type="date"] {
   min-width: 0;
   border: 1px solid var(--color-border-control);
   border-radius: 8px;
@@ -458,6 +459,48 @@ input[type="time"] {
 }
 
 input[type="time"] {
+  width: 100%;
+  padding: 8px;
+  font-size: 13px;
+}
+
+.schedule-date-range {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid var(--color-border);
+}
+
+.schedule-field-heading {
+  margin-bottom: 11px;
+}
+
+.schedule-field-heading h3 {
+  margin: 0 0 4px;
+  font-size: 13px;
+}
+
+.schedule-field-heading p {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 11px;
+}
+
+.date-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.date-row label {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 9px;
+  align-items: center;
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
+
+input[type="date"] {
   width: 100%;
   padding: 8px;
   font-size: 13px;
@@ -702,6 +745,10 @@ input[type="time"] {
   }
 
   .schedule-exceptions {
+    grid-template-columns: 1fr;
+  }
+
+  .date-row {
     grid-template-columns: 1fr;
   }
 }

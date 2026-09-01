@@ -46,10 +46,13 @@ Ogni schedule contiene:
 - Stato attivo o disattivato.
 - Uno o più giorni della settimana.
 - Orario iniziale e finale.
+- Periodo opzionale con data iniziale e finale.
 - Link aggiuntivi da bloccare soltanto durante quella fascia.
 - Link da non bloccare durante quella fascia.
 
 Una fascia di lunedì dalle `22:00` alle `02:00` resta attiva fino alle `02:00` di martedì.
+
+Le date del periodo sono inclusive e possono essere lasciate vuote per creare uno schedule senza scadenza o con un solo limite. Per una fascia notturna, il periodo viene verificato rispetto al giorno in cui la fascia inizia.
 
 ### Eccezioni per schedule
 

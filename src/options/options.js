@@ -95,6 +95,16 @@ function formatScheduleDays(days) {
   return DAYS.filter((day) => days.includes(day.value)).map((day) => SHORT_DAY_NAMES[day.value]).join(", ");
 }
 
+function formatScheduleDateRange(startDate, endDate) {
+  if (!startDate && !endDate) {
+    return "";
+  }
+
+  const formatDate = (value, fallback) => value ? value.split("-").reverse().join("/") : fallback;
+
+  return ` · ${formatDate(startDate, "…")}→${formatDate(endDate, "…")}`;
+}
+
 function createDayButton(day, selectedDays) {
   const label = document.createElement("label");
   label.className = "day-option";
@@ -318,6 +328,39 @@ function createScheduleCard(schedule, expanded = false) {
   end.required = true;
   endLabel.append(end);
 
+  const dateRange = document.createElement("div");
+  dateRange.className = "schedule-date-range";
+
+  const dateRangeHeading = document.createElement("div");
+  dateRangeHeading.className = "schedule-field-heading";
+  const dateRangeTitle = document.createElement("h3");
+  dateRangeTitle.textContent = "Periodo date";
+  const dateRangeHelp = document.createElement("p");
+  dateRangeHelp.textContent = "Opzionale. Lascia vuoto un limite per non applicarlo.";
+  dateRangeHeading.append(dateRangeTitle, dateRangeHelp);
+
+  const dateRow = document.createElement("div");
+  dateRow.className = "date-row";
+
+  const startDateLabel = document.createElement("label");
+  startDateLabel.textContent = "Dal";
+  const startDate = document.createElement("input");
+  startDate.className = "schedule-start-date";
+  startDate.type = "date";
+  startDate.value = schedule.startDate || "";
+  startDateLabel.append(startDate);
+
+  const endDateLabel = document.createElement("label");
+  endDateLabel.textContent = "Al";
+  const endDate = document.createElement("input");
+  endDate.className = "schedule-end-date";
+  endDate.type = "date";
+  endDate.value = schedule.endDate || "";
+  endDateLabel.append(endDate);
+
+  dateRow.append(startDateLabel, endDateLabel);
+  dateRange.append(dateRangeHeading, dateRow);
+
   const scheduleExceptions = document.createElement("div");
   scheduleExceptions.className = "schedule-exceptions";
   scheduleExceptions.append(
@@ -326,14 +369,14 @@ function createScheduleCard(schedule, expanded = false) {
   );
 
   timeRow.append(startLabel, endLabel);
-  settings.append(topRow, days, timeRow, scheduleExceptions);
+  settings.append(topRow, days, timeRow, dateRange, scheduleExceptions);
   card.append(summary, settings);
 
   function refreshSummary() {
     const selectedDays = [...days.querySelectorAll("input:checked")].map((input) => Number(input.value));
     const enabledStatus = enabled.checked ? "Attivo" : "Disattivato";
     summaryName.textContent = name.value.trim() || "Schedule";
-    summaryDetails.textContent = `${formatScheduleDays(selectedDays)} · ${start.value}–${end.value} · ${enabledStatus}`;
+    summaryDetails.textContent = `${formatScheduleDays(selectedDays)} · ${start.value}–${end.value}${formatScheduleDateRange(startDate.value, endDate.value)} · ${enabledStatus}`;
     card.classList.toggle("is-disabled", !enabled.checked);
   }
 
@@ -393,6 +436,8 @@ function readSchedules() {
     days: [...card.querySelectorAll(".day-option input:checked")].map((input) => Number(input.value)),
     start: card.querySelector(".schedule-start").value,
     end: card.querySelector(".schedule-end").value,
+    startDate: card.querySelector(".schedule-start-date").value,
+    endDate: card.querySelector(".schedule-end-date").value,
     additionalBlockedUrls: [...card.querySelectorAll(".schedule-additional-url")].map((input) => input.value.trim()),
     excludedBlockedUrls: [...card.querySelectorAll(".schedule-excluded-url")].map((input) => input.value.trim())
   }));
@@ -414,6 +459,10 @@ function validateSchedules(scheduleValues) {
 
     if (schedule.start === schedule.end) {
       return { index, message: "L'orario di inizio e fine non possono coincidere." };
+    }
+
+    if (schedule.startDate && schedule.endDate && schedule.startDate > schedule.endDate) {
+      return { index, message: "La data iniziale non può essere successiva alla data finale." };
     }
   }
 
@@ -514,6 +563,8 @@ addScheduleButton.addEventListener("click", () => {
     days: [1, 2, 3, 4, 5],
     start: "09:00",
     end: "17:00",
+    startDate: "",
+    endDate: "",
     enabled: true,
     additionalBlockedUrls: [],
     excludedBlockedUrls: []
