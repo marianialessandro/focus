@@ -5,6 +5,7 @@ const DEFAULT_STATE = {
   schedules: [],
   scheduleBlocked: false,
   activeSchedule: null,
+  activeSchedules: [],
   theme: "system",
   blockedUrls: ["youtube.com", "instagram.com", "netflix.com"]
 };
@@ -36,10 +37,11 @@ export async function setSchedules(schedules) {
   await chrome.storage.local.set({ schedules });
 }
 
-export async function setScheduleBlocked(enabled, activeSchedule = null) {
+export async function setScheduleBlocked(enabled, activeSchedule = null, activeSchedules = []) {
   await chrome.storage.local.set({
     scheduleBlocked: Boolean(enabled),
-    activeSchedule
+    activeSchedule,
+    activeSchedules
   });
 }
 

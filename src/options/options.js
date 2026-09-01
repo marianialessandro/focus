@@ -141,6 +141,89 @@ function createBlockedUrlRow(value) {
   return row;
 }
 
+function createScheduleUrlEditor(title, description, inputClass, values) {
+  const group = document.createElement("div");
+  group.className = "schedule-url-group";
+
+  const heading = document.createElement("h3");
+  heading.textContent = title;
+
+  const help = document.createElement("p");
+  help.textContent = description;
+
+  const controls = document.createElement("div");
+  controls.className = "schedule-url-controls";
+
+  const newUrlInput = document.createElement("input");
+  newUrlInput.type = "text";
+  newUrlInput.inputMode = "url";
+  newUrlInput.placeholder = "es. news.ycombinator.com";
+  newUrlInput.setAttribute("aria-label", title);
+
+  const addButton = document.createElement("button");
+  addButton.type = "button";
+  addButton.className = "schedule-url-add";
+  addButton.setAttribute("aria-label", `Aggiungi a ${title}`);
+  addButton.title = "Aggiungi link";
+  addButton.append(createLucideIcon(["M12 5v14", "M5 12h14"], "plus-icon"));
+
+  const list = document.createElement("div");
+  list.className = "schedule-url-list";
+
+  function addRow(value) {
+    const row = document.createElement("div");
+    row.className = "schedule-url-row";
+
+    const input = document.createElement("input");
+    input.className = inputClass;
+    input.type = "text";
+    input.inputMode = "url";
+    input.value = value;
+    input.setAttribute("aria-label", `${title}: link`);
+
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.className = "schedule-url-remove";
+    remove.setAttribute("aria-label", `Rimuovi ${value}`);
+    remove.title = "Rimuovi link";
+    remove.append(createLucideIcon(["M18 6 6 18", "m6 6 12 12"], "x-icon"));
+    remove.addEventListener("click", () => {
+      row.remove();
+      showMessage("Modifica non ancora salvata.", "info");
+    });
+
+    row.append(input, remove);
+    list.append(row);
+  }
+
+  function addInputValue() {
+    const value = newUrlInput.value.trim();
+
+    if (!value) {
+      newUrlInput.focus();
+      return;
+    }
+
+    addRow(value);
+    newUrlInput.value = "";
+    showMessage("Modifica non ancora salvata.", "info");
+  }
+
+  addButton.addEventListener("click", addInputValue);
+  newUrlInput.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      addInputValue();
+    }
+  });
+
+  values.forEach(addRow);
+  controls.append(newUrlInput, addButton);
+  group.append(heading, help, controls, list);
+
+  return group;
+}
+
 function createScheduleCard(schedule, expanded = false) {
   const card = document.createElement("article");
   card.className = "schedule-card";
@@ -235,8 +318,15 @@ function createScheduleCard(schedule, expanded = false) {
   end.required = true;
   endLabel.append(end);
 
+  const scheduleExceptions = document.createElement("div");
+  scheduleExceptions.className = "schedule-exceptions";
+  scheduleExceptions.append(
+    createScheduleUrlEditor("Blocca anche", "Questi link vengono bloccati soltanto durante questo schedule.", "schedule-additional-url", schedule.additionalBlockedUrls || []),
+    createScheduleUrlEditor("Non bloccare", "Questi link restano accessibili durante questo schedule.", "schedule-excluded-url", schedule.excludedBlockedUrls || [])
+  );
+
   timeRow.append(startLabel, endLabel);
-  settings.append(topRow, days, timeRow);
+  settings.append(topRow, days, timeRow, scheduleExceptions);
   card.append(summary, settings);
 
   function refreshSummary() {
@@ -302,7 +392,9 @@ function readSchedules() {
     enabled: card.querySelector(".schedule-enabled").checked,
     days: [...card.querySelectorAll(".day-option input:checked")].map((input) => Number(input.value)),
     start: card.querySelector(".schedule-start").value,
-    end: card.querySelector(".schedule-end").value
+    end: card.querySelector(".schedule-end").value,
+    additionalBlockedUrls: [...card.querySelectorAll(".schedule-additional-url")].map((input) => input.value.trim()),
+    excludedBlockedUrls: [...card.querySelectorAll(".schedule-excluded-url")].map((input) => input.value.trim())
   }));
 }
 
@@ -422,7 +514,9 @@ addScheduleButton.addEventListener("click", () => {
     days: [1, 2, 3, 4, 5],
     start: "09:00",
     end: "17:00",
-    enabled: true
+    enabled: true,
+    additionalBlockedUrls: [],
+    excludedBlockedUrls: []
   }, true));
   updateEmptyState();
   showMessage("Configura la fascia e salva le modifiche.", "info");

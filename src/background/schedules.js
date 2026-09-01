@@ -4,6 +4,8 @@ import {
   setSchedules
 } from "./state.js";
 
+import { normalizeBlockedUrls } from "./blocked-sites.js";
+
 const DAY_COUNT = 7;
 const TIME_PATTERN = /^([01]\d|2[0-3]):([0-5]\d)$/;
 
@@ -44,7 +46,9 @@ export function normalizeSchedules(schedules) {
     days: [...new Set(schedule.days)].sort((first, second) => first - second),
     start: schedule.start,
     end: schedule.end,
-    enabled: schedule.enabled !== false
+    enabled: schedule.enabled !== false,
+    additionalBlockedUrls: normalizeBlockedUrls(Array.isArray(schedule.additionalBlockedUrls) ? schedule.additionalBlockedUrls : []),
+    excludedBlockedUrls: normalizeBlockedUrls(Array.isArray(schedule.excludedBlockedUrls) ? schedule.excludedBlockedUrls : [])
   }));
 }
 
@@ -82,9 +86,10 @@ export async function saveSchedules(schedules) {
 export async function refreshScheduleState(knownSchedules = null) {
   const state = knownSchedules ? null : await getBlockState();
   const schedules = knownSchedules || normalizeSchedules(state.schedules);
-  const activeSchedule = schedules.find((schedule) => isScheduleActive(schedule)) || null;
+  const activeSchedules = schedules.filter((schedule) => isScheduleActive(schedule));
+  const activeSchedule = activeSchedules[0] || null;
 
-  await setScheduleBlocked(Boolean(activeSchedule), activeSchedule);
+  await setScheduleBlocked(Boolean(activeSchedule), activeSchedule, activeSchedules);
 
-  return activeSchedule;
+  return activeSchedules;
 }
