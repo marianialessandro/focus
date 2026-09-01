@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Impostazioni · Focus Blocker</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+
+<body>
+  <main class="options-container">
+    <header class="page-header">
+      <p class="eyebrow">Focus Blocker</p>
+      <h1>Impostazioni</h1>
+      <p class="page-description">Configura quando attivare automaticamente il blocco.</p>
+    </header>
+
+    <section class="settings-panel" aria-labelledby="schedules-title">
+      <div class="section-heading">
+        <div>
+          <h2 id="schedules-title">Schedule</h2>
+          <p>Puoi creare più fasce e scegliere giorni e orari diversi.</p>
+        </div>
+
+        <button id="add-schedule" class="add-button" type="button">
+          <!-- Plus icon from Lucide, licensed under ISC: https://lucide.dev/license. -->
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 5v14M5 12h14"></path>
+          </svg>
+          <span>Nuovo schedule</span>
+        </button>
+      </div>
+
+      <div id="schedule-list"></div>
+      <p id="empty-schedules" class="empty-state">Nessuno schedule configurato.</p>
+
+      <div class="panel-footer">
+        <p id="schedule-message" class="message" role="status"></p>
+        <button id="save-schedules" class="save-button" type="button">Salva modifiche</button>
+      </div>
+    </section>
+
+    <p class="icon-credit">Icone di <a href="https://lucide.dev" target="_blank" rel="noreferrer">Lucide</a>, licenza ISC.</p>
+  </main>
+
+  <script src="options.js"></script>
+</body>
+</html>
