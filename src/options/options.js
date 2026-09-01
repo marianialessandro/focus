@@ -16,10 +16,17 @@ const scheduleMessage = document.getElementById("schedule-message");
 const addScheduleButton = document.getElementById("add-schedule");
 const saveSchedulesButton = document.getElementById("save-schedules");
 const themeSelect = document.getElementById("theme-select");
+const blockedUrlInput = document.getElementById("blocked-url-input");
+const blockedUrlList = document.getElementById("blocked-url-list");
+const emptyBlockedUrls = document.getElementById("empty-blocked-urls");
+const blockedUrlMessage = document.getElementById("blocked-url-message");
+const addBlockedUrlButton = document.getElementById("add-blocked-url");
+const saveBlockedUrlsButton = document.getElementById("save-blocked-urls");
 const navigationItems = [...document.querySelectorAll(".nav-item")];
 const settingsViews = [...document.querySelectorAll(".settings-view")];
 
 let schedules = [];
+let blockedUrls = [];
 let currentTheme = "system";
 
 function showSettingsSection(sectionId, updateLocation = true) {
@@ -104,6 +111,34 @@ function createDayButton(day, selectedDays) {
   label.append(input, text);
 
   return label;
+}
+
+function createBlockedUrlRow(value) {
+  const row = document.createElement("div");
+  row.className = "blocked-url-row";
+
+  const input = document.createElement("input");
+  input.className = "blocked-url-value";
+  input.type = "text";
+  input.inputMode = "url";
+  input.value = value;
+  input.setAttribute("aria-label", "Link bloccato");
+
+  const remove = document.createElement("button");
+  remove.type = "button";
+  remove.className = "remove-button";
+  remove.setAttribute("aria-label", `Rimuovi ${value}`);
+  remove.title = "Rimuovi link";
+  remove.append(createLucideIcon(["M3 6h18", "M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6", "M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2", "M10 11v6", "M14 11v6"], "trash-icon"));
+  remove.addEventListener("click", () => {
+    row.remove();
+    updateBlockedUrlsEmptyState();
+    showBlockedUrlMessage("Modifica non ancora salvata.", "info");
+  });
+
+  row.append(input, remove);
+
+  return row;
 }
 
 function createScheduleCard(schedule, expanded = false) {
@@ -240,9 +275,24 @@ function renderSchedules() {
   updateEmptyState();
 }
 
+function updateBlockedUrlsEmptyState() {
+  emptyBlockedUrls.hidden = blockedUrlList.children.length > 0;
+}
+
+function renderBlockedUrls() {
+  blockedUrlList.replaceChildren();
+  blockedUrls.forEach((blockedUrl) => blockedUrlList.append(createBlockedUrlRow(blockedUrl)));
+  updateBlockedUrlsEmptyState();
+}
+
 function showMessage(text, type) {
   scheduleMessage.textContent = text;
   scheduleMessage.className = `message ${type}`;
+}
+
+function showBlockedUrlMessage(text, type) {
+  blockedUrlMessage.textContent = text;
+  blockedUrlMessage.className = `message ${type}`;
 }
 
 function readSchedules() {
@@ -254,6 +304,10 @@ function readSchedules() {
     start: card.querySelector(".schedule-start").value,
     end: card.querySelector(".schedule-end").value
   }));
+}
+
+function readBlockedUrls() {
+  return [...blockedUrlList.querySelectorAll(".blocked-url-value")].map((input) => input.value.trim());
 }
 
 function validateSchedules(scheduleValues) {
@@ -283,9 +337,11 @@ async function loadSettings() {
   }
 
   schedules = response.state.schedules;
+  blockedUrls = response.state.blockedUrls;
   currentTheme = response.state.theme;
   themeSelect.value = currentTheme;
   renderSchedules();
+  renderBlockedUrls();
 }
 
 themeSelect.addEventListener("change", async () => {
@@ -312,6 +368,51 @@ navigationItems.forEach((item) => {
   item.addEventListener("click", () => {
     showSettingsSection(item.dataset.section);
   });
+});
+
+function addBlockedUrl() {
+  const value = blockedUrlInput.value.trim();
+
+  if (!value) {
+    showBlockedUrlMessage("Inserisci un dominio o un URL.", "error");
+    blockedUrlInput.focus();
+    return;
+  }
+
+  blockedUrlList.append(createBlockedUrlRow(value));
+  blockedUrlInput.value = "";
+  updateBlockedUrlsEmptyState();
+  showBlockedUrlMessage("Link aggiunto. Salva per applicare la modifica.", "info");
+}
+
+addBlockedUrlButton.addEventListener("click", addBlockedUrl);
+
+blockedUrlInput.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    addBlockedUrl();
+  }
+});
+
+saveBlockedUrlsButton.addEventListener("click", async () => {
+  saveBlockedUrlsButton.disabled = true;
+  showBlockedUrlMessage("Salvataggio…", "info");
+
+  const response = await chrome.runtime.sendMessage({
+    type: "SAVE_BLOCKED_URLS",
+    blockedUrls: readBlockedUrls()
+  });
+
+  saveBlockedUrlsButton.disabled = false;
+
+  if (!response?.ok) {
+    showBlockedUrlMessage(response?.error || "Impossibile salvare i link.", "error");
+    return;
+  }
+
+  blockedUrls = response.state.blockedUrls;
+  renderBlockedUrls();
+  showBlockedUrlMessage("Siti bloccati aggiornati.", "success");
 });
 
 addScheduleButton.addEventListener("click", () => {

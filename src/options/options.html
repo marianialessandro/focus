@@ -28,6 +28,15 @@
           <span>Schedule</span>
         </button>
 
+        <button class="nav-item" type="button" data-section="blocked-sites">
+          <!-- Globe icon from Lucide, licensed under ISC: https://lucide.dev/license. -->
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M12 2a15.3 15.3 0 0 1 0 20 15.3 15.3 0 0 1 0-20M2 12h20"></path>
+          </svg>
+          <span>Siti bloccati</span>
+        </button>
+
         <button class="nav-item" type="button" data-section="appearance">
           <!-- Palette icon from Lucide, licensed under ISC: https://lucide.dev/license. -->
           <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -73,6 +82,37 @@
       <div class="panel-footer">
         <p id="schedule-message" class="message" role="status"></p>
         <button id="save-schedules" class="save-button" type="button">Salva modifiche</button>
+      </div>
+    </section>
+
+    <section id="blocked-sites" class="settings-panel settings-view" aria-labelledby="blocked-sites-title" hidden>
+      <div class="section-heading">
+        <div>
+          <h2 id="blocked-sites-title">Siti bloccati</h2>
+          <p>Inserisci un dominio intero o un URL specifico da bloccare.</p>
+        </div>
+      </div>
+
+      <div class="url-entry-form">
+        <label for="blocked-url-input">Nuovo link</label>
+        <div class="url-entry-controls">
+          <input id="blocked-url-input" type="text" inputmode="url" placeholder="es. reddit.com oppure reddit.com/r/popular">
+          <button id="add-blocked-url" class="add-button" type="button">
+            <!-- Plus icon from Lucide, licensed under ISC: https://lucide.dev/license. -->
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 5v14M5 12h14"></path>
+            </svg>
+            <span>Aggiungi</span>
+          </button>
+        </div>
+      </div>
+
+      <div id="blocked-url-list" class="blocked-url-list"></div>
+      <p id="empty-blocked-urls" class="empty-state">Nessun sito configurato.</p>
+
+      <div class="panel-footer">
+        <p id="blocked-url-message" class="message" role="status"></p>
+        <button id="save-blocked-urls" class="save-button" type="button">Salva siti</button>
       </div>
     </section>
 

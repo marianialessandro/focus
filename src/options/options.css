@@ -307,6 +307,71 @@ input[type="time"] {
   color: var(--color-text);
 }
 
+.url-entry-form {
+  margin-bottom: 20px;
+  padding: 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 11px;
+  background: var(--color-surface-subtle);
+}
+
+.url-entry-form > label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.url-entry-controls {
+  display: flex;
+  gap: 10px;
+}
+
+#blocked-url-input,
+.blocked-url-value {
+  min-width: 0;
+  padding: 9px 10px;
+  border: 1px solid var(--color-border-control);
+  border-radius: 8px;
+  outline: none;
+  background: var(--color-input);
+  color: var(--color-text);
+  font-size: 13px;
+}
+
+#blocked-url-input {
+  flex: 1;
+}
+
+.blocked-url-list {
+  display: grid;
+  gap: 8px;
+}
+
+.blocked-url-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-surface-raised);
+}
+
+.blocked-url-row::before {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--color-danger);
+  content: "";
+}
+
+.blocked-url-value {
+  flex: 1;
+}
+
 .schedule-name {
   flex: 1;
   padding: 9px 10px;
@@ -544,5 +609,10 @@ input[type="time"] {
   .add-button,
   .save-button {
     width: 100%;
+  }
+
+  .url-entry-controls {
+    align-items: stretch;
+    flex-direction: column;
   }
 }
