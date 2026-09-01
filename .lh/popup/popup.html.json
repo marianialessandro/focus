@@ -1,0 +1,18 @@
+{
+    "sourceFile": "popup/popup.html",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 0,
+            "patches": [
+                {
+                    "date": 1788263175612,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                }
+            ],
+            "date": 1788263175612,
+            "name": "Commit-0",
+            "content": "<!DOCTYPE html>\n<html lang=\"it\">\n<head>\n  <meta charset=\"UTF-8\">\n  <meta\n    name=\"viewport\"\n    content=\"width=device-width, initial-scale=1.0\"\n  >\n\n  <title>Focus Blocker</title>\n\n  <link\n    rel=\"stylesheet\"\n    href=\"popup.css\"\n  >\n</head>\n\n<body>\n  <main class=\"container\">\n    <h1>Focus Blocker</h1>\n\n    <div class=\"status\">\n      <span id=\"status-indicator\"></span>\n      <span id=\"status-text\">\n        Caricamento...\n      </span>\n    </div>\n\n    <button id=\"toggle-button\">\n      Caricamento...\n    </button>\n  </main>\n\n  <script src=\"popup.js\"></script>\n</body>\n</html>"
+        }
+    ]
+}

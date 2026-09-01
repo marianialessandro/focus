@@ -1,0 +1,36 @@
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, sans-serif;
+  background: #111;
+  color: #fff;
+}
+
+.container {
+  width: 260px;
+  padding: 20px;
+}
+
+h1 {
+  margin-top: 0;
+  font-size: 20px;
+}
+
+.status {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 24px 0;
+}
+
+button {
+  width: 100%;
+  padding: 12px;
+
+  border: 0;
+  border-radius: 8px;
+
+  cursor: pointer;
+
+  font-size: 14px;
+  font-weight: 600;
+}
