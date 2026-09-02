@@ -105,6 +105,42 @@ function formatScheduleDateRange(startDate, endDate) {
   return ` · ${formatDate(startDate, "…")}→${formatDate(endDate, "…")}`;
 }
 
+function normalizeUrlForComparison(value) {
+  const valueWithProtocol = /^[a-z][a-z\d+.-]*:\/\//i.test(value.trim()) ? value.trim() : `https://${value.trim()}`;
+
+  try {
+    const parsedUrl = new URL(valueWithProtocol);
+    const hostname = parsedUrl.hostname.toLowerCase().replace(/^www\./, "");
+    const port = parsedUrl.port ? `:${parsedUrl.port}` : "";
+    const path = parsedUrl.pathname === "/" ? "" : parsedUrl.pathname.replace(/\/+$/, "");
+
+    return `${hostname}${port}${path}${parsedUrl.search}`;
+  } catch {
+    return null;
+  }
+}
+
+function isUrlCoveredByBlockedUrl(candidateUrl, blockedUrl) {
+  const candidate = new URL(`https://${candidateUrl}`);
+  const blocked = new URL(`https://${blockedUrl}`);
+  const hostIsCovered = candidate.hostname === blocked.hostname || candidate.hostname.endsWith(`.${blocked.hostname}`);
+  const portIsCovered = !blocked.port || candidate.port === blocked.port;
+  const blockedSuffix = `${blocked.pathname === "/" ? "" : blocked.pathname}${blocked.search}`;
+  const candidateSuffix = `${candidate.pathname === "/" ? "" : candidate.pathname}${candidate.search}`;
+
+  return hostIsCovered && portIsCovered && (!blockedSuffix || candidateSuffix.startsWith(blockedSuffix));
+}
+
+function validateAdditionalBlockedUrl(value) {
+  const normalizedValue = normalizeUrlForComparison(value);
+
+  if (!normalizedValue) {
+    return null;
+  }
+
+  return blockedUrls.some((blockedUrl) => isUrlCoveredByBlockedUrl(normalizedValue, blockedUrl)) ? `${normalizedValue} è già bloccato globalmente.` : null;
+}
+
 function createDayButton(day, selectedDays) {
   const label = document.createElement("label");
   label.className = "day-option";
@@ -151,7 +187,7 @@ function createBlockedUrlRow(value) {
   return row;
 }
 
-function createScheduleUrlEditor(title, description, inputClass, values, suggestedValues = []) {
+function createScheduleUrlEditor(title, description, inputClass, values, suggestedValues = [], validateValue = null) {
   const group = document.createElement("div");
   group.className = "schedule-url-group";
 
@@ -255,6 +291,14 @@ function createScheduleUrlEditor(title, description, inputClass, values, suggest
     const value = newUrlInput.value.trim();
 
     if (!value) {
+      newUrlInput.focus();
+      return;
+    }
+
+    const validationError = validateValue?.(value);
+
+    if (validationError) {
+      showMessage(validationError, "error");
       newUrlInput.focus();
       return;
     }
@@ -417,7 +461,7 @@ function createScheduleCard(schedule, expanded = false) {
   const scheduleExceptions = document.createElement("div");
   scheduleExceptions.className = "schedule-exceptions";
   scheduleExceptions.append(
-    createScheduleUrlEditor("Blocca anche", "Questi link vengono bloccati soltanto durante questo schedule.", "schedule-additional-url", schedule.additionalBlockedUrls || []),
+    createScheduleUrlEditor("Blocca anche", "Questi link vengono bloccati soltanto durante questo schedule.", "schedule-additional-url", schedule.additionalBlockedUrls || [], [], validateAdditionalBlockedUrl),
     createScheduleUrlEditor("Non bloccare", "Questi link restano accessibili durante questo schedule.", "schedule-excluded-url", schedule.excludedBlockedUrls || [], blockedUrls)
   );
 

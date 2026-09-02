@@ -42,6 +42,17 @@ export function normalizeBlockedUrls(values) {
   return [...new Set(values.map(normalizeBlockedUrl))];
 }
 
+export function isBlockedUrlCovered(candidateUrl, blockedUrl) {
+  const candidate = new URL(`https://${candidateUrl}`);
+  const blocked = new URL(`https://${blockedUrl}`);
+  const hostIsCovered = candidate.hostname === blocked.hostname || candidate.hostname.endsWith(`.${blocked.hostname}`);
+  const portIsCovered = !blocked.port || candidate.port === blocked.port;
+  const blockedSuffix = `${blocked.pathname === "/" ? "" : blocked.pathname}${blocked.search}`;
+  const candidateSuffix = `${candidate.pathname === "/" ? "" : candidate.pathname}${candidate.search}`;
+
+  return hostIsCovered && portIsCovered && (!blockedSuffix || candidateSuffix.startsWith(blockedSuffix));
+}
+
 export async function saveBlockedUrls(values) {
   const blockedUrls = normalizeBlockedUrls(values);
   await setBlockedUrls(blockedUrls);

@@ -4,7 +4,10 @@ import {
   setSchedules
 } from "./state.js";
 
-import { normalizeBlockedUrls } from "./blocked-sites.js";
+import {
+  isBlockedUrlCovered,
+  normalizeBlockedUrls
+} from "./blocked-sites.js";
 
 const DAY_COUNT = 7;
 const TIME_PATTERN = /^([01]\d|2[0-3]):([0-5]\d)$/;
@@ -128,6 +131,17 @@ export async function saveSchedules(schedules) {
 
   if (!Array.isArray(schedules) || normalizedSchedules.length !== schedules.length) {
     throw new Error("Uno o più schedule non sono validi.");
+  }
+
+  const state = await getBlockState();
+
+  for (const schedule of normalizedSchedules) {
+    const redundantUrl = schedule.additionalBlockedUrls.find((additionalUrl) => state.blockedUrls.some((blockedUrl) => isBlockedUrlCovered(additionalUrl, blockedUrl)));
+
+    if (redundantUrl) {
+      const scheduleName = schedule.name || `${schedule.start}–${schedule.end}`;
+      throw new Error(`${redundantUrl} è già bloccato globalmente e non può essere aggiunto a “Blocca anche” nello schedule ${scheduleName}.`);
+    }
   }
 
   await setSchedules(normalizedSchedules);
