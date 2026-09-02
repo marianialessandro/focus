@@ -314,10 +314,31 @@ input[type="date"] {
 }
 
 .site-list-card {
-  padding: 16px;
+  overflow: hidden;
   border: 1px solid var(--color-border);
   border-radius: 12px;
   background: var(--color-surface-raised);
+  transition: border-color 150ms ease;
+}
+
+.site-list-card:hover,
+.site-list-card:focus-within,
+.site-list-card.is-open {
+  border-color: var(--color-border-strong);
+}
+
+.site-list-summary {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.site-list-card.is-open .schedule-chevron {
+  transform: rotate(180deg);
+}
+
+.site-list-settings {
+  padding: 16px;
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface-subtle);
 }
 
 .site-list-header {
@@ -506,11 +527,6 @@ input[type="time"] {
   border-color: var(--color-accent-border);
   background: var(--color-accent-soft);
   color: var(--color-on-accent-soft);
-}
-
-.schedule-list-choice:has(input:disabled) {
-  cursor: default;
-  opacity: 0.8;
 }
 
 .schedule-list-choice input {

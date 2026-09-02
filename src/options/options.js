@@ -139,14 +139,16 @@ function isUrlCoveredByBlockedUrl(candidateUrl, blockedUrl) {
   return hostIsCovered && portIsCovered && (!blockedSuffix || candidateSuffix.startsWith(blockedSuffix));
 }
 
-function validateAdditionalBlockedUrl(value) {
+function validateAdditionalBlockedUrl(value, selectedListIds) {
   const normalizedValue = normalizeUrlForComparison(value);
 
   if (!normalizedValue) {
     return null;
   }
 
-  return blockedUrls.some((blockedUrl) => isUrlCoveredByBlockedUrl(normalizedValue, blockedUrl)) ? `${normalizedValue} è già bloccato globalmente.` : null;
+  const selectedUrls = siteLists.filter((siteList) => selectedListIds.includes(siteList.id)).flatMap((siteList) => siteList.urls);
+
+  return selectedUrls.some((blockedUrl) => isUrlCoveredByBlockedUrl(normalizedValue, blockedUrl)) ? `${normalizedValue} è già presente in una lista selezionata.` : null;
 }
 
 function createDayButton(day, selectedDays) {
@@ -167,10 +169,31 @@ function createDayButton(day, selectedDays) {
   return label;
 }
 
-function createSiteListCard(siteList) {
+function createSiteListCard(siteList, expanded = false) {
   const card = document.createElement("article");
   card.className = "site-list-card";
   card.dataset.siteListId = siteList.id;
+
+  const summary = document.createElement("button");
+  summary.type = "button";
+  summary.className = "schedule-summary site-list-summary";
+  summary.setAttribute("aria-expanded", String(expanded));
+
+  const summaryContent = document.createElement("span");
+  summaryContent.className = "schedule-summary-content";
+  const summaryName = document.createElement("span");
+  summaryName.className = "schedule-summary-name";
+  const summaryDetails = document.createElement("span");
+  summaryDetails.className = "schedule-summary-details";
+  const chevron = createLucideIcon(["m7 9 5 5 5-5"], "schedule-chevron");
+  summaryContent.append(summaryName, summaryDetails);
+  summary.append(summaryContent, chevron);
+
+  const settings = document.createElement("div");
+  settings.className = "site-list-settings";
+  settings.hidden = !expanded;
+  settings.id = `site-list-panel-${siteList.id.replace(/[^a-zA-Z0-9_-]/g, "-")}`;
+  summary.setAttribute("aria-controls", settings.id);
 
   const header = document.createElement("div");
   header.className = "site-list-header";
@@ -209,7 +232,7 @@ function createSiteListCard(siteList) {
 
   const description = document.createElement("p");
   description.className = "site-list-help";
-  description.textContent = "Le liste predefinite vengono applicate a ogni blocco manuale e schedule.";
+  description.textContent = "Le liste predefinite vengono applicate al blocco manuale. Negli schedule ogni lista va selezionata esplicitamente.";
 
   const addControls = document.createElement("div");
   addControls.className = "site-list-add-controls";
@@ -246,6 +269,7 @@ function createSiteListCard(siteList) {
     remove.append(createLucideIcon(["M18 6 6 18", "m6 6 12 12"], "x-icon"));
     remove.addEventListener("click", () => {
       row.remove();
+      refreshSummary();
       showSiteListMessage("Modifica non ancora salvata.", "info");
     });
     row.append(input, remove);
@@ -262,6 +286,7 @@ function createSiteListCard(siteList) {
 
     addUrlRow(value);
     newUrl.value = "";
+    refreshSummary();
     showSiteListMessage("Modifica non ancora salvata.", "info");
   }
 
@@ -274,7 +299,28 @@ function createSiteListCard(siteList) {
   });
 
   siteList.urls.forEach(addUrlRow);
-  card.append(header, description, addControls, urls);
+  settings.append(header, description, addControls, urls);
+  card.append(summary, settings);
+
+  function refreshSummary() {
+    const urlCount = urls.querySelectorAll(".site-list-url").length;
+    summaryName.textContent = name.value.trim() || "Lista senza nome";
+    summaryDetails.textContent = `${urlCount} ${urlCount === 1 ? "sito" : "siti"}${isDefault.checked ? " · Predefinita" : ""}`;
+  }
+
+  function setExpanded(isExpanded) {
+    card.classList.toggle("is-open", isExpanded);
+    settings.hidden = !isExpanded;
+    summary.setAttribute("aria-expanded", String(isExpanded));
+  }
+
+  summary.addEventListener("click", () => {
+    setExpanded(summary.getAttribute("aria-expanded") !== "true");
+  });
+  settings.addEventListener("input", refreshSummary);
+  settings.addEventListener("change", refreshSummary);
+  setExpanded(expanded);
+  refreshSummary();
 
   return card;
 }
@@ -432,7 +478,7 @@ function createScheduleListSelector(selectedListIds) {
   const title = document.createElement("h3");
   title.textContent = "Liste da bloccare";
   const help = document.createElement("p");
-  help.textContent = "Combina una o più liste. Quelle predefinite sono sempre incluse.";
+  help.textContent = "Combina una o più liste. Nessuna lista viene inclusa automaticamente.";
   heading.append(title, help);
 
   const choices = document.createElement("div");
@@ -452,8 +498,7 @@ function createScheduleListSelector(selectedListIds) {
     input.type = "checkbox";
     input.className = "schedule-site-list";
     input.value = siteList.id;
-    input.checked = siteList.isDefault || selectedListIds.includes(siteList.id);
-    input.disabled = siteList.isDefault;
+    input.checked = selectedListIds.includes(siteList.id);
     const text = document.createElement("span");
     text.textContent = `${siteList.name} · ${siteList.urls.length} siti${siteList.isDefault ? " · predefinita" : ""}`;
     label.append(input, text);
@@ -592,14 +637,13 @@ function createScheduleCard(schedule, expanded = false) {
   dateRow.append(startDateLabel, endDateLabel);
   dateRange.append(dateRangeHeading, dateRow);
 
+  const listSelector = createScheduleListSelector(schedule.siteListIds || []);
   const scheduleExceptions = document.createElement("div");
   scheduleExceptions.className = "schedule-exceptions";
   scheduleExceptions.append(
-    createScheduleUrlEditor("Blocca anche", "Questi link vengono bloccati soltanto durante questo schedule.", "schedule-additional-url", schedule.additionalBlockedUrls || [], [], validateAdditionalBlockedUrl),
+    createScheduleUrlEditor("Blocca anche", "Questi link vengono bloccati soltanto durante questo schedule.", "schedule-additional-url", schedule.additionalBlockedUrls || [], [], (value) => validateAdditionalBlockedUrl(value, [...listSelector.querySelectorAll(".schedule-site-list:checked")].map((input) => input.value))),
     createScheduleUrlEditor("Non bloccare", "Questi link restano accessibili durante questo schedule.", "schedule-excluded-url", schedule.excludedBlockedUrls || [], blockedUrls)
   );
-
-  const listSelector = createScheduleListSelector(schedule.siteListIds || []);
 
   timeRow.append(startLabel, endLabel);
   settings.append(topRow, days, timeRow, dateRange, listSelector, scheduleExceptions);
@@ -607,8 +651,8 @@ function createScheduleCard(schedule, expanded = false) {
 
   function refreshSummary() {
     const selectedDays = [...days.querySelectorAll("input:checked")].map((input) => Number(input.value));
-    const selectedListCount = listSelector.querySelectorAll(".schedule-site-list:checked:not(:disabled)").length;
-    const selectedListsSummary = selectedListCount > 0 ? ` · ${selectedListCount} ${selectedListCount === 1 ? "lista" : "liste"} extra` : "";
+    const selectedListCount = listSelector.querySelectorAll(".schedule-site-list:checked").length;
+    const selectedListsSummary = selectedListCount > 0 ? ` · ${selectedListCount} ${selectedListCount === 1 ? "lista" : "liste"}` : "";
     const enabledStatus = enabled.checked ? "Attivo" : "Disattivato";
     summaryName.textContent = name.value.trim() || "Schedule";
     summaryDetails.textContent = `${formatScheduleDays(selectedDays)} · ${start.value}–${end.value}${formatScheduleDateRange(startDate.value, endDate.value)}${selectedListsSummary} · ${enabledStatus}`;
@@ -673,7 +717,7 @@ function readSchedules() {
     end: card.querySelector(".schedule-end").value,
     startDate: card.querySelector(".schedule-start-date").value,
     endDate: card.querySelector(".schedule-end-date").value,
-    siteListIds: [...card.querySelectorAll(".schedule-site-list:checked:not(:disabled)")].map((input) => input.value),
+    siteListIds: [...card.querySelectorAll(".schedule-site-list:checked")].map((input) => input.value),
     additionalBlockedUrls: [...card.querySelectorAll(".schedule-additional-url")].map((input) => input.value.trim()),
     excludedBlockedUrls: [...card.querySelectorAll(".schedule-excluded-url")].map((input) => input.value.trim())
   }));
@@ -704,6 +748,15 @@ function validateSchedules(scheduleValues) {
 
     if (schedule.startDate && schedule.endDate && schedule.startDate > schedule.endDate) {
       return { index, message: "La data iniziale non può essere successiva alla data finale." };
+    }
+
+    const selectedListUrls = siteLists.filter((siteList) => schedule.siteListIds.includes(siteList.id)).flatMap((siteList) => siteList.urls);
+    const customUrls = schedule.additionalBlockedUrls.map(normalizeUrlForComparison).filter(Boolean);
+    const excludedUrls = schedule.excludedBlockedUrls.map(normalizeUrlForComparison).filter(Boolean);
+    const effectiveBlockedUrls = [...selectedListUrls, ...customUrls].filter((blockedUrl) => !excludedUrls.some((excludedUrl) => isUrlCoveredByBlockedUrl(blockedUrl, excludedUrl)));
+
+    if (effectiveBlockedUrls.length === 0) {
+      return { index, message: "Ogni schedule deve bloccare almeno un sito. Seleziona una lista o usa “Blocca anche”." };
     }
   }
 
@@ -815,7 +868,7 @@ addSiteListButton.addEventListener("click", () => {
     name: "Nuova lista",
     urls: [],
     isDefault: false
-  }));
+  }, true));
   updateSiteListsEmptyState();
   showSiteListMessage("Configura la lista e salva le modifiche.", "info");
 });

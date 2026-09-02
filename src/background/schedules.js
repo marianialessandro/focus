@@ -5,6 +5,7 @@ import {
 } from "./state.js";
 
 import {
+  getUrlsForListIds,
   isBlockedUrlCovered,
   normalizeBlockedUrls
 } from "./blocked-sites.js";
@@ -127,6 +128,12 @@ export function isScheduleActive(schedule, date = new Date()) {
   return (!schedule.startDate || occurrenceDateValue >= schedule.startDate) && (!schedule.endDate || occurrenceDateValue <= schedule.endDate);
 }
 
+export function hasEffectiveBlockedUrls(schedule, siteLists) {
+  const blockedUrls = [...getUrlsForListIds(siteLists, schedule.siteListIds), ...schedule.additionalBlockedUrls];
+
+  return blockedUrls.some((blockedUrl) => !schedule.excludedBlockedUrls.some((excludedUrl) => isBlockedUrlCovered(blockedUrl, excludedUrl)));
+}
+
 export async function saveSchedules(schedules) {
   const normalizedSchedules = normalizeSchedules(schedules);
 
@@ -135,15 +142,14 @@ export async function saveSchedules(schedules) {
   }
 
   const state = await getBlockState();
-  const validSiteListIds = new Set(state.siteLists.filter((siteList) => !siteList.isDefault).map((siteList) => siteList.id));
+  const validSiteListIds = new Set(state.siteLists.map((siteList) => siteList.id));
 
   for (const schedule of normalizedSchedules) {
     schedule.siteListIds = schedule.siteListIds.filter((siteListId) => validSiteListIds.has(siteListId));
-    const redundantUrl = schedule.additionalBlockedUrls.find((additionalUrl) => state.blockedUrls.some((blockedUrl) => isBlockedUrlCovered(additionalUrl, blockedUrl)));
 
-    if (redundantUrl) {
+    if (!hasEffectiveBlockedUrls(schedule, state.siteLists)) {
       const scheduleName = schedule.name || `${schedule.start}–${schedule.end}`;
-      throw new Error(`${redundantUrl} è già bloccato globalmente e non può essere aggiunto a “Blocca anche” nello schedule ${scheduleName}.`);
+      throw new Error(`Lo schedule “${scheduleName}” deve bloccare almeno un sito.`);
     }
   }
 
@@ -153,9 +159,9 @@ export async function saveSchedules(schedules) {
 }
 
 export async function refreshScheduleState(knownSchedules = null) {
-  const state = knownSchedules ? null : await getBlockState();
+  const state = await getBlockState();
   const schedules = knownSchedules || normalizeSchedules(state.schedules);
-  const activeSchedules = schedules.filter((schedule) => isScheduleActive(schedule));
+  const activeSchedules = schedules.filter((schedule) => isScheduleActive(schedule) && hasEffectiveBlockedUrls(schedule, state.siteLists));
   const activeSchedule = activeSchedules[0] || null;
 
   await setScheduleBlocked(Boolean(activeSchedule), activeSchedule, activeSchedules);

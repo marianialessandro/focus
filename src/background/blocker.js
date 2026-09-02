@@ -72,7 +72,7 @@ export async function refreshBlockingState() {
 
   if (state.scheduleBlocked) {
     const scheduleUrlRules = getScheduleUrlRules(state.activeSchedules, state.siteLists);
-    blockedUrls = [...blockedUrls, ...scheduleUrlRules.additionalBlockedUrls];
+    blockedUrls = scheduleUrlRules.additionalBlockedUrls;
     allowedUrls = scheduleUrlRules.excludedBlockedUrls;
   }
 

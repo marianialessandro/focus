@@ -30,7 +30,7 @@ Quando uno schedule è attivo, il pulsante del blocco manuale viene disabilitato
 
 ## Liste di siti
 
-La sezione **Liste siti** permette di creare più raccolte riutilizzabili. Un sito può appartenere a più liste e ogni lista può essere marcata come **Predefinita**. L’unione delle liste predefinite viene applicata al blocco manuale e a tutti gli schedule.
+La sezione **Liste siti** permette di creare più raccolte riutilizzabili. Un sito può appartenere a più liste e ogni lista può essere marcata come **Predefinita**. L’unione delle liste predefinite viene applicata al blocco manuale. Le liste sono mostrate in forma compatta e si aprono cliccando sulla relativa testata.
 
 All’interno delle liste sono accettati valori come:
 
@@ -49,11 +49,13 @@ Ogni schedule contiene:
 - Uno o più giorni della settimana.
 - Orario iniziale e finale.
 - Periodo opzionale con data iniziale e finale.
-- Una o più liste di siti da applicare in aggiunta alle liste predefinite.
+- Una o più liste di siti da applicare. Anche le liste predefinite devono essere selezionate esplicitamente.
 - Link aggiuntivi da bloccare soltanto durante quella fascia.
 - Link da non bloccare durante quella fascia.
 
 Una fascia di lunedì dalle `22:00` alle `02:00` resta attiva fino alle `02:00` di martedì.
+
+Ogni schedule deve bloccare almeno un sito tramite una lista selezionata o **Blocca anche**. Una configurazione in cui **Non bloccare** esclude tutti i siti non è valida.
 
 Le date del periodo sono inclusive e possono essere lasciate vuote per creare uno schedule senza scadenza o con un solo limite. Per una fascia notturna, il periodo viene verificato rispetto al giorno in cui la fascia inizia.
 
