@@ -1,5 +1,6 @@
-import { setBlockedUrls } from "./state.js";
+import { setSiteLists } from "./state.js";
 
+const MAX_SITE_LISTS = 100;
 const MAX_BLOCKED_URLS = 1000;
 const MAX_URL_LENGTH = 500;
 
@@ -36,10 +37,55 @@ export function normalizeBlockedUrl(value) {
 
 export function normalizeBlockedUrls(values) {
   if (!Array.isArray(values) || values.length > MAX_BLOCKED_URLS) {
-    throw new Error(`Puoi configurare fino a ${MAX_BLOCKED_URLS} link.`);
+    throw new Error(`Puoi configurare fino a ${MAX_BLOCKED_URLS} link per lista.`);
   }
 
   return [...new Set(values.map(normalizeBlockedUrl))];
+}
+
+export function normalizeSiteLists(values) {
+  if (!Array.isArray(values) || values.length > MAX_SITE_LISTS) {
+    throw new Error(`Puoi configurare fino a ${MAX_SITE_LISTS} liste.`);
+  }
+
+  const normalizedLists = values.map((siteList) => {
+    if (!siteList || typeof siteList.id !== "string" || !siteList.id || siteList.id.length > 100) {
+      throw new Error("Una lista contiene un identificatore non valido.");
+    }
+
+    const name = typeof siteList.name === "string" ? siteList.name.trim().slice(0, 80) : "";
+
+    if (!name) {
+      throw new Error("Ogni lista deve avere un nome.");
+    }
+
+    return {
+      id: siteList.id,
+      name,
+      urls: normalizeBlockedUrls(siteList.urls),
+      isDefault: Boolean(siteList.isDefault)
+    };
+  });
+
+  if (new Set(normalizedLists.map((siteList) => siteList.id)).size !== normalizedLists.length) {
+    throw new Error("Due liste hanno lo stesso identificatore.");
+  }
+
+  if (new Set(normalizedLists.flatMap((siteList) => siteList.urls)).size > MAX_BLOCKED_URLS) {
+    throw new Error(`Puoi configurare fino a ${MAX_BLOCKED_URLS} link distinti complessivi.`);
+  }
+
+  return normalizedLists;
+}
+
+export function getDefaultBlockedUrls(siteLists) {
+  return [...new Set(siteLists.filter((siteList) => siteList.isDefault).flatMap((siteList) => siteList.urls))];
+}
+
+export function getUrlsForListIds(siteLists, listIds) {
+  const selectedIds = new Set(listIds);
+
+  return [...new Set(siteLists.filter((siteList) => selectedIds.has(siteList.id)).flatMap((siteList) => siteList.urls))];
 }
 
 export function isBlockedUrlCovered(candidateUrl, blockedUrl) {
@@ -53,9 +99,9 @@ export function isBlockedUrlCovered(candidateUrl, blockedUrl) {
   return hostIsCovered && portIsCovered && (!blockedSuffix || candidateSuffix.startsWith(blockedSuffix));
 }
 
-export async function saveBlockedUrls(values) {
-  const blockedUrls = normalizeBlockedUrls(values);
-  await setBlockedUrls(blockedUrls);
+export async function saveSiteLists(values) {
+  const siteLists = normalizeSiteLists(values);
+  await setSiteLists(siteLists);
 
-  return blockedUrls;
+  return siteLists;
 }

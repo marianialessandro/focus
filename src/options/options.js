@@ -16,16 +16,16 @@ const scheduleMessage = document.getElementById("schedule-message");
 const addScheduleButton = document.getElementById("add-schedule");
 const saveSchedulesButton = document.getElementById("save-schedules");
 const themeSelect = document.getElementById("theme-select");
-const blockedUrlInput = document.getElementById("blocked-url-input");
-const blockedUrlList = document.getElementById("blocked-url-list");
-const emptyBlockedUrls = document.getElementById("empty-blocked-urls");
-const blockedUrlMessage = document.getElementById("blocked-url-message");
-const addBlockedUrlButton = document.getElementById("add-blocked-url");
-const saveBlockedUrlsButton = document.getElementById("save-blocked-urls");
+const siteListList = document.getElementById("site-list-list");
+const emptySiteLists = document.getElementById("empty-site-lists");
+const siteListMessage = document.getElementById("site-list-message");
+const addSiteListButton = document.getElementById("add-site-list");
+const saveSiteListsButton = document.getElementById("save-site-lists");
 const navigationItems = [...document.querySelectorAll(".nav-item")];
 const settingsViews = [...document.querySelectorAll(".settings-view")];
 
 let schedules = [];
+let siteLists = [];
 let blockedUrls = [];
 let currentTheme = "system";
 
@@ -54,6 +54,14 @@ function showSettingsSection(sectionId, updateLocation = true) {
 
 function createScheduleId() {
   return `schedule-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+function createSiteListId() {
+  return `list-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+function getDefaultBlockedUrls() {
+  return [...new Set(siteLists.filter((siteList) => siteList.isDefault).flatMap((siteList) => siteList.urls))];
 }
 
 function createLucideIcon(pathData, className) {
@@ -159,32 +167,116 @@ function createDayButton(day, selectedDays) {
   return label;
 }
 
-function createBlockedUrlRow(value) {
-  const row = document.createElement("div");
-  row.className = "blocked-url-row";
+function createSiteListCard(siteList) {
+  const card = document.createElement("article");
+  card.className = "site-list-card";
+  card.dataset.siteListId = siteList.id;
 
-  const input = document.createElement("input");
-  input.className = "blocked-url-value";
-  input.type = "text";
-  input.inputMode = "url";
-  input.value = value;
-  input.setAttribute("aria-label", "Link bloccato");
+  const header = document.createElement("div");
+  header.className = "site-list-header";
 
-  const remove = document.createElement("button");
-  remove.type = "button";
-  remove.className = "remove-button";
-  remove.setAttribute("aria-label", `Rimuovi ${value}`);
-  remove.title = "Rimuovi link";
-  remove.append(createLucideIcon(["M3 6h18", "M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6", "M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2", "M10 11v6", "M14 11v6"], "trash-icon"));
-  remove.addEventListener("click", () => {
-    row.remove();
-    updateBlockedUrlsEmptyState();
-    showBlockedUrlMessage("Modifica non ancora salvata.", "info");
+  const name = document.createElement("input");
+  name.className = "site-list-name";
+  name.type = "text";
+  name.maxLength = 80;
+  name.value = siteList.name;
+  name.placeholder = "Nome lista";
+  name.setAttribute("aria-label", "Nome lista");
+
+  const defaultLabel = document.createElement("label");
+  defaultLabel.className = "default-list-toggle";
+  const isDefault = document.createElement("input");
+  isDefault.className = "site-list-default";
+  isDefault.type = "checkbox";
+  isDefault.checked = siteList.isDefault;
+  const defaultText = document.createElement("span");
+  defaultText.textContent = "Predefinita";
+  defaultLabel.append(isDefault, defaultText);
+
+  const removeList = document.createElement("button");
+  removeList.type = "button";
+  removeList.className = "remove-button";
+  removeList.title = "Rimuovi lista";
+  removeList.setAttribute("aria-label", `Rimuovi lista ${siteList.name}`);
+  removeList.append(createLucideIcon(["M3 6h18", "M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6", "M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2", "M10 11v6", "M14 11v6"], "trash-icon"));
+  removeList.addEventListener("click", () => {
+    card.remove();
+    updateSiteListsEmptyState();
+    showSiteListMessage("Modifica non ancora salvata.", "info");
   });
 
-  row.append(input, remove);
+  header.append(name, defaultLabel, removeList);
 
-  return row;
+  const description = document.createElement("p");
+  description.className = "site-list-help";
+  description.textContent = "Le liste predefinite vengono applicate a ogni blocco manuale e schedule.";
+
+  const addControls = document.createElement("div");
+  addControls.className = "site-list-add-controls";
+  const newUrl = document.createElement("input");
+  newUrl.type = "text";
+  newUrl.inputMode = "url";
+  newUrl.placeholder = "es. reddit.com oppure reddit.com/r/popular";
+  newUrl.setAttribute("aria-label", `Nuovo sito per ${siteList.name}`);
+  const addUrl = document.createElement("button");
+  addUrl.type = "button";
+  addUrl.className = "schedule-url-add";
+  addUrl.title = "Aggiungi sito";
+  addUrl.setAttribute("aria-label", `Aggiungi sito a ${siteList.name}`);
+  addUrl.append(createLucideIcon(["M12 5v14", "M5 12h14"], "plus-icon"));
+  addControls.append(newUrl, addUrl);
+
+  const urls = document.createElement("div");
+  urls.className = "site-list-urls";
+
+  function addUrlRow(value) {
+    const row = document.createElement("div");
+    row.className = "site-list-url-row";
+    const input = document.createElement("input");
+    input.className = "site-list-url";
+    input.type = "text";
+    input.inputMode = "url";
+    input.value = value;
+    input.setAttribute("aria-label", `Sito nella lista ${siteList.name}`);
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.className = "schedule-url-remove";
+    remove.title = "Rimuovi sito";
+    remove.setAttribute("aria-label", `Rimuovi ${value}`);
+    remove.append(createLucideIcon(["M18 6 6 18", "m6 6 12 12"], "x-icon"));
+    remove.addEventListener("click", () => {
+      row.remove();
+      showSiteListMessage("Modifica non ancora salvata.", "info");
+    });
+    row.append(input, remove);
+    urls.append(row);
+  }
+
+  function addNewUrl() {
+    const value = newUrl.value.trim();
+
+    if (!value) {
+      newUrl.focus();
+      return;
+    }
+
+    addUrlRow(value);
+    newUrl.value = "";
+    showSiteListMessage("Modifica non ancora salvata.", "info");
+  }
+
+  addUrl.addEventListener("click", addNewUrl);
+  newUrl.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      addNewUrl();
+    }
+  });
+
+  siteList.urls.forEach(addUrlRow);
+  card.append(header, description, addControls, urls);
+
+  return card;
 }
 
 function createScheduleUrlEditor(title, description, inputClass, values, suggestedValues = [], validateValue = null) {
@@ -331,6 +423,48 @@ function createScheduleUrlEditor(title, description, inputClass, values, suggest
   return group;
 }
 
+function createScheduleListSelector(selectedListIds) {
+  const group = document.createElement("div");
+  group.className = "schedule-list-selector";
+
+  const heading = document.createElement("div");
+  heading.className = "schedule-field-heading";
+  const title = document.createElement("h3");
+  title.textContent = "Liste da bloccare";
+  const help = document.createElement("p");
+  help.textContent = "Combina una o più liste. Quelle predefinite sono sempre incluse.";
+  heading.append(title, help);
+
+  const choices = document.createElement("div");
+  choices.className = "schedule-list-choices";
+
+  if (siteLists.length === 0) {
+    const empty = document.createElement("p");
+    empty.className = "schedule-list-empty";
+    empty.textContent = "Crea prima una lista nella sezione Liste siti.";
+    choices.append(empty);
+  }
+
+  siteLists.forEach((siteList) => {
+    const label = document.createElement("label");
+    label.className = "schedule-list-choice";
+    const input = document.createElement("input");
+    input.type = "checkbox";
+    input.className = "schedule-site-list";
+    input.value = siteList.id;
+    input.checked = siteList.isDefault || selectedListIds.includes(siteList.id);
+    input.disabled = siteList.isDefault;
+    const text = document.createElement("span");
+    text.textContent = `${siteList.name} · ${siteList.urls.length} siti${siteList.isDefault ? " · predefinita" : ""}`;
+    label.append(input, text);
+    choices.append(label);
+  });
+
+  group.append(heading, choices);
+
+  return group;
+}
+
 function createScheduleCard(schedule, expanded = false) {
   const card = document.createElement("article");
   card.className = "schedule-card";
@@ -465,15 +599,19 @@ function createScheduleCard(schedule, expanded = false) {
     createScheduleUrlEditor("Non bloccare", "Questi link restano accessibili durante questo schedule.", "schedule-excluded-url", schedule.excludedBlockedUrls || [], blockedUrls)
   );
 
+  const listSelector = createScheduleListSelector(schedule.siteListIds || []);
+
   timeRow.append(startLabel, endLabel);
-  settings.append(topRow, days, timeRow, dateRange, scheduleExceptions);
+  settings.append(topRow, days, timeRow, dateRange, listSelector, scheduleExceptions);
   card.append(summary, settings);
 
   function refreshSummary() {
     const selectedDays = [...days.querySelectorAll("input:checked")].map((input) => Number(input.value));
+    const selectedListCount = listSelector.querySelectorAll(".schedule-site-list:checked:not(:disabled)").length;
+    const selectedListsSummary = selectedListCount > 0 ? ` · ${selectedListCount} ${selectedListCount === 1 ? "lista" : "liste"} extra` : "";
     const enabledStatus = enabled.checked ? "Attivo" : "Disattivato";
     summaryName.textContent = name.value.trim() || "Schedule";
-    summaryDetails.textContent = `${formatScheduleDays(selectedDays)} · ${start.value}–${end.value}${formatScheduleDateRange(startDate.value, endDate.value)} · ${enabledStatus}`;
+    summaryDetails.textContent = `${formatScheduleDays(selectedDays)} · ${start.value}–${end.value}${formatScheduleDateRange(startDate.value, endDate.value)}${selectedListsSummary} · ${enabledStatus}`;
     card.classList.toggle("is-disabled", !enabled.checked);
   }
 
@@ -505,14 +643,14 @@ function renderSchedules() {
   updateEmptyState();
 }
 
-function updateBlockedUrlsEmptyState() {
-  emptyBlockedUrls.hidden = blockedUrlList.children.length > 0;
+function updateSiteListsEmptyState() {
+  emptySiteLists.hidden = siteListList.children.length > 0;
 }
 
-function renderBlockedUrls() {
-  blockedUrlList.replaceChildren();
-  blockedUrls.forEach((blockedUrl) => blockedUrlList.append(createBlockedUrlRow(blockedUrl)));
-  updateBlockedUrlsEmptyState();
+function renderSiteLists() {
+  siteListList.replaceChildren();
+  siteLists.forEach((siteList) => siteListList.append(createSiteListCard(siteList)));
+  updateSiteListsEmptyState();
 }
 
 function showMessage(text, type) {
@@ -520,9 +658,9 @@ function showMessage(text, type) {
   scheduleMessage.className = `message ${type}`;
 }
 
-function showBlockedUrlMessage(text, type) {
-  blockedUrlMessage.textContent = text;
-  blockedUrlMessage.className = `message ${type}`;
+function showSiteListMessage(text, type) {
+  siteListMessage.textContent = text;
+  siteListMessage.className = `message ${type}`;
 }
 
 function readSchedules() {
@@ -535,13 +673,19 @@ function readSchedules() {
     end: card.querySelector(".schedule-end").value,
     startDate: card.querySelector(".schedule-start-date").value,
     endDate: card.querySelector(".schedule-end-date").value,
+    siteListIds: [...card.querySelectorAll(".schedule-site-list:checked:not(:disabled)")].map((input) => input.value),
     additionalBlockedUrls: [...card.querySelectorAll(".schedule-additional-url")].map((input) => input.value.trim()),
     excludedBlockedUrls: [...card.querySelectorAll(".schedule-excluded-url")].map((input) => input.value.trim())
   }));
 }
 
-function readBlockedUrls() {
-  return [...blockedUrlList.querySelectorAll(".blocked-url-value")].map((input) => input.value.trim());
+function readSiteLists() {
+  return [...siteListList.querySelectorAll(".site-list-card")].map((card) => ({
+    id: card.dataset.siteListId,
+    name: card.querySelector(".site-list-name").value.trim(),
+    isDefault: card.querySelector(".site-list-default").checked,
+    urls: [...card.querySelectorAll(".site-list-url")].map((input) => input.value.trim())
+  }));
 }
 
 function validateSchedules(scheduleValues) {
@@ -566,6 +710,62 @@ function validateSchedules(scheduleValues) {
   return null;
 }
 
+async function offerToSaveCustomLists(scheduleValues) {
+  const originalSiteLists = siteLists.map((siteList) => ({
+    ...siteList,
+    urls: [...siteList.urls]
+  }));
+  let listsChanged = false;
+
+  for (const schedule of scheduleValues) {
+    if (schedule.additionalBlockedUrls.length === 0) {
+      continue;
+    }
+
+    const scheduleName = schedule.name || `${schedule.start}–${schedule.end}`;
+    const shouldSaveList = window.confirm(`Lo schedule “${scheduleName}” contiene ${schedule.additionalBlockedUrls.length} siti personalizzati. Vuoi salvarli come lista riutilizzabile?`);
+
+    if (!shouldSaveList) {
+      continue;
+    }
+
+    const listName = window.prompt("Nome della nuova lista", `${scheduleName} · personalizzata`)?.trim();
+
+    if (!listName) {
+      continue;
+    }
+
+    const listId = createSiteListId();
+    siteLists.push({
+      id: listId,
+      name: listName,
+      urls: [...schedule.additionalBlockedUrls],
+      isDefault: false
+    });
+    schedule.siteListIds.push(listId);
+    schedule.additionalBlockedUrls = [];
+    listsChanged = true;
+  }
+
+  if (!listsChanged) {
+    return { ok: true };
+  }
+
+  const response = await chrome.runtime.sendMessage({
+    type: "SAVE_SITE_LISTS",
+    siteLists
+  });
+
+  if (response?.ok) {
+    siteLists = response.state.siteLists;
+    blockedUrls = getDefaultBlockedUrls();
+  } else {
+    siteLists = originalSiteLists;
+  }
+
+  return response;
+}
+
 async function loadSettings() {
   const response = await chrome.runtime.sendMessage({ type: "GET_BLOCK_STATE" });
 
@@ -575,11 +775,12 @@ async function loadSettings() {
   }
 
   schedules = response.state.schedules;
-  blockedUrls = response.state.blockedUrls;
+  siteLists = response.state.siteLists;
+  blockedUrls = getDefaultBlockedUrls();
   currentTheme = response.state.theme;
   themeSelect.value = currentTheme;
   renderSchedules();
-  renderBlockedUrls();
+  renderSiteLists();
 }
 
 themeSelect.addEventListener("change", async () => {
@@ -608,49 +809,40 @@ navigationItems.forEach((item) => {
   });
 });
 
-function addBlockedUrl() {
-  const value = blockedUrlInput.value.trim();
-
-  if (!value) {
-    showBlockedUrlMessage("Inserisci un dominio o un URL.", "error");
-    blockedUrlInput.focus();
-    return;
-  }
-
-  blockedUrlList.append(createBlockedUrlRow(value));
-  blockedUrlInput.value = "";
-  updateBlockedUrlsEmptyState();
-  showBlockedUrlMessage("Link aggiunto. Salva per applicare la modifica.", "info");
-}
-
-addBlockedUrlButton.addEventListener("click", addBlockedUrl);
-
-blockedUrlInput.addEventListener("keydown", (event) => {
-  if (event.key === "Enter") {
-    event.preventDefault();
-    addBlockedUrl();
-  }
+addSiteListButton.addEventListener("click", () => {
+  siteListList.append(createSiteListCard({
+    id: createSiteListId(),
+    name: "Nuova lista",
+    urls: [],
+    isDefault: false
+  }));
+  updateSiteListsEmptyState();
+  showSiteListMessage("Configura la lista e salva le modifiche.", "info");
 });
 
-saveBlockedUrlsButton.addEventListener("click", async () => {
-  saveBlockedUrlsButton.disabled = true;
-  showBlockedUrlMessage("Salvataggio…", "info");
+saveSiteListsButton.addEventListener("click", async () => {
+  const currentSchedules = readSchedules();
+  saveSiteListsButton.disabled = true;
+  showSiteListMessage("Salvataggio…", "info");
 
   const response = await chrome.runtime.sendMessage({
-    type: "SAVE_BLOCKED_URLS",
-    blockedUrls: readBlockedUrls()
+    type: "SAVE_SITE_LISTS",
+    siteLists: readSiteLists()
   });
 
-  saveBlockedUrlsButton.disabled = false;
+  saveSiteListsButton.disabled = false;
 
   if (!response?.ok) {
-    showBlockedUrlMessage(response?.error || "Impossibile salvare i link.", "error");
+    showSiteListMessage(response?.error || "Impossibile salvare le liste.", "error");
     return;
   }
 
-  blockedUrls = response.state.blockedUrls;
-  renderBlockedUrls();
-  showBlockedUrlMessage("Siti bloccati aggiornati.", "success");
+  siteLists = response.state.siteLists;
+  blockedUrls = getDefaultBlockedUrls();
+  schedules = currentSchedules;
+  renderSiteLists();
+  renderSchedules();
+  showSiteListMessage("Liste aggiornate.", "success");
 });
 
 addScheduleButton.addEventListener("click", () => {
@@ -663,6 +855,7 @@ addScheduleButton.addEventListener("click", () => {
     startDate: "",
     endDate: "",
     enabled: true,
+    siteListIds: [],
     additionalBlockedUrls: [],
     excludedBlockedUrls: []
   }, true));
@@ -689,6 +882,14 @@ saveSchedulesButton.addEventListener("click", async () => {
   saveSchedulesButton.disabled = true;
   showMessage("Salvataggio…", "info");
 
+  const listResponse = await offerToSaveCustomLists(scheduleValues);
+
+  if (!listResponse?.ok) {
+    saveSchedulesButton.disabled = false;
+    showMessage(listResponse?.error || "Impossibile salvare la nuova lista.", "error");
+    return;
+  }
+
   const response = await chrome.runtime.sendMessage({
     type: "SAVE_SCHEDULES",
     schedules: scheduleValues
@@ -702,6 +903,9 @@ saveSchedulesButton.addEventListener("click", async () => {
   }
 
   schedules = response.state.schedules;
+  siteLists = response.state.siteLists;
+  blockedUrls = getDefaultBlockedUrls();
+  renderSiteLists();
   renderSchedules();
   showMessage("Modifiche salvate.", "success");
 });

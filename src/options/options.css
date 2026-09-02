@@ -308,29 +308,27 @@ input[type="date"] {
   color: var(--color-text);
 }
 
-.url-entry-form {
-  margin-bottom: 20px;
+.site-list-list {
+  display: grid;
+  gap: 12px;
+}
+
+.site-list-card {
   padding: 16px;
   border: 1px solid var(--color-border);
-  border-radius: 11px;
-  background: var(--color-surface-subtle);
+  border-radius: 12px;
+  background: var(--color-surface-raised);
 }
 
-.url-entry-form > label {
-  display: block;
-  margin-bottom: 8px;
-  color: var(--color-text-muted);
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.url-entry-controls {
+.site-list-header {
   display: flex;
-  gap: 10px;
+  gap: 12px;
+  align-items: center;
 }
 
-#blocked-url-input,
-.blocked-url-value {
+.site-list-name,
+.site-list-add-controls input,
+.site-list-url-row input {
   min-width: 0;
   padding: 9px 10px;
   border: 1px solid var(--color-border-control);
@@ -338,39 +336,48 @@ input[type="date"] {
   outline: none;
   background: var(--color-input);
   color: var(--color-text);
-  font-size: 13px;
+  font-size: 12px;
 }
 
-#blocked-url-input {
+.site-list-name {
   flex: 1;
+  font-size: 13px;
+  font-weight: 700;
 }
 
-.blocked-url-list {
-  display: grid;
+.default-list-toggle {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  color: var(--color-text-muted);
+  font-size: 11px;
+}
+
+.default-list-toggle input {
+  accent-color: var(--color-accent);
+}
+
+.site-list-help {
+  margin: 8px 0 14px;
+  color: var(--color-text-muted);
+  font-size: 11px;
+}
+
+.site-list-add-controls,
+.site-list-url-row {
+  display: flex;
   gap: 8px;
 }
 
-.blocked-url-row {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  padding: 10px;
-  border: 1px solid var(--color-border);
-  border-radius: 10px;
-  background: var(--color-surface-raised);
-}
-
-.blocked-url-row::before {
-  width: 7px;
-  height: 7px;
-  flex: 0 0 auto;
-  border-radius: 50%;
-  background: var(--color-danger);
-  content: "";
-}
-
-.blocked-url-value {
+.site-list-add-controls input,
+.site-list-url-row input {
   flex: 1;
+}
+
+.site-list-urls {
+  display: grid;
+  gap: 7px;
+  margin-top: 9px;
 }
 
 .schedule-name {
@@ -468,6 +475,53 @@ input[type="time"] {
   margin-top: 18px;
   padding-top: 18px;
   border-top: 1px solid var(--color-border);
+}
+
+.schedule-list-selector {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid var(--color-border);
+}
+
+.schedule-list-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.schedule-list-choice {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+  padding: 8px 10px;
+  border: 1px solid var(--color-border-control);
+  border-radius: 8px;
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font-size: 11px;
+}
+
+.schedule-list-choice:has(input:checked) {
+  border-color: var(--color-accent-border);
+  background: var(--color-accent-soft);
+  color: var(--color-on-accent-soft);
+}
+
+.schedule-list-choice:has(input:disabled) {
+  cursor: default;
+  opacity: 0.8;
+}
+
+.schedule-list-choice input {
+  margin: 0;
+  accent-color: var(--color-accent);
+}
+
+.schedule-list-empty {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 11px;
 }
 
 .schedule-field-heading {
@@ -782,9 +836,13 @@ input[type="date"] {
     width: 100%;
   }
 
-  .url-entry-controls {
+  .site-list-header {
     align-items: stretch;
-    flex-direction: column;
+    flex-wrap: wrap;
+  }
+
+  .site-list-name {
+    flex-basis: 100%;
   }
 
   .schedule-exceptions {

@@ -1,3 +1,5 @@
+const INITIAL_BLOCKED_URLS = ["youtube.com", "instagram.com", "netflix.com"];
+
 const DEFAULT_STATE = {
   manualBlocked: false,
   calendarBlocked: false,
@@ -7,11 +9,27 @@ const DEFAULT_STATE = {
   activeSchedule: null,
   activeSchedules: [],
   theme: "system",
-  blockedUrls: ["youtube.com", "instagram.com", "netflix.com"]
+  blockedUrls: INITIAL_BLOCKED_URLS,
+  siteLists: null
 };
 
 export async function getBlockState() {
-  const state = await chrome.storage.local.get(DEFAULT_STATE);
+  const storedState = await chrome.storage.local.get();
+  const state = {
+    ...DEFAULT_STATE,
+    ...storedState
+  };
+
+  if (!Array.isArray(storedState.siteLists)) {
+    state.siteLists = [{
+      id: "default",
+      name: "Default",
+      urls: Array.isArray(storedState.blockedUrls) ? storedState.blockedUrls : INITIAL_BLOCKED_URLS,
+      isDefault: true
+    }];
+  }
+
+  state.blockedUrls = [...new Set(state.siteLists.filter((siteList) => siteList.isDefault).flatMap((siteList) => siteList.urls))];
 
   return {
     ...state,
@@ -53,6 +71,6 @@ export async function setTheme(theme) {
   await chrome.storage.local.set({ theme });
 }
 
-export async function setBlockedUrls(blockedUrls) {
-  await chrome.storage.local.set({ blockedUrls });
+export async function setSiteLists(siteLists) {
+  await chrome.storage.local.set({ siteLists });
 }

@@ -87,6 +87,7 @@ export function normalizeSchedules(schedules) {
     startDate: schedule.startDate || "",
     endDate: schedule.endDate || "",
     enabled: schedule.enabled !== false,
+    siteListIds: [...new Set(Array.isArray(schedule.siteListIds) ? schedule.siteListIds.filter((listId) => typeof listId === "string") : [])],
     additionalBlockedUrls: normalizeBlockedUrls(Array.isArray(schedule.additionalBlockedUrls) ? schedule.additionalBlockedUrls : []),
     excludedBlockedUrls: normalizeBlockedUrls(Array.isArray(schedule.excludedBlockedUrls) ? schedule.excludedBlockedUrls : [])
   }));
@@ -134,8 +135,10 @@ export async function saveSchedules(schedules) {
   }
 
   const state = await getBlockState();
+  const validSiteListIds = new Set(state.siteLists.filter((siteList) => !siteList.isDefault).map((siteList) => siteList.id));
 
   for (const schedule of normalizedSchedules) {
+    schedule.siteListIds = schedule.siteListIds.filter((siteListId) => validSiteListIds.has(siteListId));
     const redundantUrl = schedule.additionalBlockedUrls.find((additionalUrl) => state.blockedUrls.some((blockedUrl) => isBlockedUrlCovered(additionalUrl, blockedUrl)));
 
     if (redundantUrl) {

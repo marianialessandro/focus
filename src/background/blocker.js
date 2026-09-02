@@ -1,14 +1,20 @@
 import { getBlockState } from "./state.js";
 
+import {
+  getDefaultBlockedUrls,
+  getUrlsForListIds
+} from "./blocked-sites.js";
+
 function createUrlFilter(url) {
   return `||${url}${url.includes("/") || url.includes("?") ? "" : "^"}`;
 }
 
-export function getScheduleUrlRules(activeSchedules) {
+export function getScheduleUrlRules(activeSchedules, siteLists) {
   const additionalBlockedUrls = new Set();
   const excludedBlockedUrls = new Set();
 
   activeSchedules.forEach((schedule) => {
+    getUrlsForListIds(siteLists, schedule.siteListIds || []).forEach((url) => additionalBlockedUrls.add(url));
     schedule.additionalBlockedUrls.forEach((url) => additionalBlockedUrls.add(url));
     schedule.excludedBlockedUrls.forEach((url) => excludedBlockedUrls.add(url));
   });
@@ -61,11 +67,11 @@ async function replaceBlockingRules(blockingRules) {
 
 export async function refreshBlockingState() {
   const state = await getBlockState();
-  let blockedUrls = state.blockedUrls;
+  let blockedUrls = getDefaultBlockedUrls(state.siteLists);
   let allowedUrls = [];
 
   if (state.scheduleBlocked) {
-    const scheduleUrlRules = getScheduleUrlRules(state.activeSchedules);
+    const scheduleUrlRules = getScheduleUrlRules(state.activeSchedules, state.siteLists);
     blockedUrls = [...blockedUrls, ...scheduleUrlRules.additionalBlockedUrls];
     allowedUrls = scheduleUrlRules.excludedBlockedUrls;
   }
