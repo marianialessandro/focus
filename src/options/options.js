@@ -151,7 +151,7 @@ function createBlockedUrlRow(value) {
   return row;
 }
 
-function createScheduleUrlEditor(title, description, inputClass, values) {
+function createScheduleUrlEditor(title, description, inputClass, values, suggestedValues = []) {
   const group = document.createElement("div");
   group.className = "schedule-url-group";
 
@@ -164,11 +164,20 @@ function createScheduleUrlEditor(title, description, inputClass, values) {
   const controls = document.createElement("div");
   controls.className = "schedule-url-controls";
 
+  const inputWrapper = document.createElement("div");
+  inputWrapper.className = "schedule-url-input-wrapper";
+
   const newUrlInput = document.createElement("input");
   newUrlInput.type = "text";
   newUrlInput.inputMode = "url";
   newUrlInput.placeholder = "es. news.ycombinator.com";
   newUrlInput.setAttribute("aria-label", title);
+  newUrlInput.setAttribute("autocomplete", "off");
+
+  const suggestions = document.createElement("div");
+  suggestions.className = "schedule-url-suggestions";
+  suggestions.hidden = true;
+  suggestions.setAttribute("role", "listbox");
 
   const addButton = document.createElement("button");
   addButton.type = "button";
@@ -179,6 +188,42 @@ function createScheduleUrlEditor(title, description, inputClass, values) {
 
   const list = document.createElement("div");
   list.className = "schedule-url-list";
+
+  function getCurrentValues() {
+    return [...list.querySelectorAll(`.${inputClass}`)].map((input) => input.value.trim());
+  }
+
+  function hideSuggestions() {
+    suggestions.hidden = true;
+  }
+
+  function renderSuggestions() {
+    const query = newUrlInput.value.trim().toLowerCase();
+    const currentValues = new Set(getCurrentValues());
+    const matchingValues = suggestedValues.filter((value) => !currentValues.has(value) && value.toLowerCase().includes(query));
+
+    suggestions.replaceChildren();
+
+    matchingValues.forEach((value) => {
+      const option = document.createElement("button");
+      option.type = "button";
+      option.className = "schedule-url-suggestion";
+      option.textContent = value;
+      option.setAttribute("role", "option");
+      option.addEventListener("mousedown", (event) => {
+        event.preventDefault();
+      });
+      option.addEventListener("click", () => {
+        addRow(value);
+        newUrlInput.value = "";
+        hideSuggestions();
+        showMessage("Modifica non ancora salvata.", "info");
+      });
+      suggestions.append(option);
+    });
+
+    suggestions.hidden = matchingValues.length === 0;
+  }
 
   function addRow(value) {
     const row = document.createElement("div");
@@ -216,19 +261,27 @@ function createScheduleUrlEditor(title, description, inputClass, values) {
 
     addRow(value);
     newUrlInput.value = "";
+    hideSuggestions();
     showMessage("Modifica non ancora salvata.", "info");
   }
 
   addButton.addEventListener("click", addInputValue);
+  newUrlInput.addEventListener("focus", renderSuggestions);
+  newUrlInput.addEventListener("click", renderSuggestions);
+  newUrlInput.addEventListener("input", renderSuggestions);
+  newUrlInput.addEventListener("blur", hideSuggestions);
   newUrlInput.addEventListener("keydown", (event) => {
     if (event.key === "Enter") {
       event.preventDefault();
       addInputValue();
+    } else if (event.key === "Escape") {
+      hideSuggestions();
     }
   });
 
   values.forEach(addRow);
-  controls.append(newUrlInput, addButton);
+  inputWrapper.append(newUrlInput, suggestions);
+  controls.append(inputWrapper, addButton);
   group.append(heading, help, controls, list);
 
   return group;
@@ -365,7 +418,7 @@ function createScheduleCard(schedule, expanded = false) {
   scheduleExceptions.className = "schedule-exceptions";
   scheduleExceptions.append(
     createScheduleUrlEditor("Blocca anche", "Questi link vengono bloccati soltanto durante questo schedule.", "schedule-additional-url", schedule.additionalBlockedUrls || []),
-    createScheduleUrlEditor("Non bloccare", "Questi link restano accessibili durante questo schedule.", "schedule-excluded-url", schedule.excludedBlockedUrls || [])
+    createScheduleUrlEditor("Non bloccare", "Questi link restano accessibili durante questo schedule.", "schedule-excluded-url", schedule.excludedBlockedUrls || [], blockedUrls)
   );
 
   timeRow.append(startLabel, endLabel);

@@ -542,6 +542,12 @@ input[type="date"] {
   gap: 7px;
 }
 
+.schedule-url-input-wrapper {
+  position: relative;
+  min-width: 0;
+  flex: 1;
+}
+
 .schedule-url-controls input,
 .schedule-url-row input {
   min-width: 0;
@@ -553,6 +559,43 @@ input[type="date"] {
   background: var(--color-input);
   color: var(--color-text);
   font-size: 11px;
+}
+
+.schedule-url-controls input {
+  width: 100%;
+}
+
+.schedule-url-suggestions {
+  position: absolute;
+  z-index: 10;
+  top: calc(100% + 5px);
+  right: 0;
+  left: 0;
+  max-height: 160px;
+  padding: 5px;
+  border: 1px solid var(--color-border-control);
+  border-radius: 8px;
+  overflow-y: auto;
+  background: var(--color-surface);
+  box-shadow: 0 12px 30px var(--color-shadow);
+}
+
+.schedule-url-suggestion {
+  display: block;
+  width: 100%;
+  padding: 8px;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--color-text);
+  font-size: 11px;
+  text-align: left;
+}
+
+.schedule-url-suggestion:hover,
+.schedule-url-suggestion:focus-visible {
+  outline: none;
+  background: var(--color-accent-soft);
+  color: var(--color-on-accent-soft);
 }
 
 .schedule-url-add,
