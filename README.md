@@ -1,4 +1,4 @@
-# Focus Blocker
+# DriftQuell
 
 Estensione Chrome Manifest V3 per bloccare siti che distraggono, manualmente o attraverso schedule settimanali configurabili.
 
