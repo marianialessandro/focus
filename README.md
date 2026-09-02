@@ -1,87 +1,87 @@
 # DriftQuell
 
-Estensione Chrome Manifest V3 per bloccare siti che distraggono, manualmente o attraverso schedule settimanali configurabili.
+A Chrome Manifest V3 extension for blocking distracting websites manually or through configurable weekly schedules.
 
-## Funzionalità
+## Features
 
-- Blocco manuale immediato dal popup.
-- Schedule settimanali persistenti con giorni e intervalli orari personalizzabili.
-- Supporto per fasce che attraversano la mezzanotte.
-- Liste riutilizzabili e combinabili di domini e URL da bloccare.
-- Regole aggiuntive ed eccezioni specifiche per ogni schedule.
-- Temi chiaro, scuro e automatico in base al sistema.
-- Pagina impostazioni dedicata con navigazione a sidebar.
+- Immediate manual blocking from the popup.
+- Persistent weekly schedules with customizable days and time ranges.
+- Support for time ranges that cross midnight.
+- Reusable and combinable lists of domains and URLs to block.
+- Additional rules and exceptions for each schedule.
+- Light, dark, and automatic system theme support.
+- Dedicated settings page with sidebar navigation.
 
-## Installazione
+## Installation
 
-1. Clona o scarica il repository.
-2. Apri `chrome://extensions` in Chrome.
-3. Attiva la modalità sviluppatore.
-4. Seleziona **Carica estensione non pacchettizzata**.
-5. Scegli la directory del progetto.
+1. Clone or download the repository.
+2. Open `chrome://extensions` in Chrome.
+3. Enable Developer mode.
+4. Select **Load unpacked**.
+5. Choose the project directory.
 
-Quando il manifest viene modificato, usa il pulsante **Ricarica** nella pagina delle estensioni. L’estensione richiede l’accesso ai siti perché l’elenco dei domini da bloccare è configurabile dall’utente.
+Whenever the manifest changes, use the **Reload** button on the extensions page. The extension requires access to websites because the list of domains to block is configured by the user.
 
 ## Popup
 
-Il popup mostra lo stato corrente e permette di attivare o disattivare il blocco manuale. L’ingranaggio in alto a destra apre le impostazioni in una nuova scheda.
+The popup displays the current status and lets you enable or disable manual blocking. The settings icon in the top-right corner opens the settings page in a new tab.
 
-Quando uno schedule è attivo, il pulsante del blocco manuale viene disabilitato e il popup indica quale fascia sta controllando il blocco.
+When a schedule is active, the manual blocking button is disabled and the popup indicates which time range is controlling the block.
 
-## Liste di siti
+## Site lists
 
-La sezione **Liste siti** permette di creare più raccolte riutilizzabili. Un sito può appartenere a più liste e ogni lista può essere marcata come **Predefinita**. L’unione delle liste predefinite viene applicata al blocco manuale. Le liste sono mostrate in forma compatta e si aprono cliccando sulla relativa testata.
+The **Site lists** section lets you create multiple reusable collections. A website may belong to more than one list, and each list can be marked as **Default**. The union of all default lists is used for manual blocking. Lists are displayed in a compact form and can be expanded by clicking their header.
 
-All’interno delle liste sono accettati valori come:
+Lists accept values such as:
 
-- `reddit.com`, per bloccare l’intero dominio e i relativi sottodomini.
-- `reddit.com/r/popular`, per bloccare uno specifico percorso.
-- `https://www.youtube.com/shorts`, che viene normalizzato automaticamente.
+- `reddit.com`, to block the entire domain and its subdomains.
+- `reddit.com/r/popular`, to block a specific path.
+- `https://www.youtube.com/shorts`, which is normalized automatically.
 
-La precedente lista globale viene migrata automaticamente in una lista chiamata **Default**. YouTube, Instagram e Netflix sono presenti nella configurazione iniziale e possono essere modificati o rimossi.
+The previous global list is automatically migrated to a list named **Default**. YouTube, Instagram, and Netflix are included in the initial configuration and can be changed or removed.
 
-## Schedule
+## Schedules
 
-Ogni schedule contiene:
+Each schedule contains:
 
-- Nome opzionale.
-- Stato attivo o disattivato.
-- Uno o più giorni della settimana.
-- Orario iniziale e finale.
-- Periodo opzionale con data iniziale e finale.
-- Una o più liste di siti da applicare. Anche le liste predefinite devono essere selezionate esplicitamente.
-- Link aggiuntivi da bloccare soltanto durante quella fascia.
-- Link da non bloccare durante quella fascia.
+- An optional name.
+- An enabled or disabled state.
+- One or more days of the week.
+- A start and end time.
+- An optional start and end date.
+- One or more site lists. Default lists must also be selected explicitly.
+- Additional links to block only during that schedule.
+- Links that must remain accessible during that schedule.
 
-Una fascia di lunedì dalle `22:00` alle `02:00` resta attiva fino alle `02:00` di martedì.
+A Monday schedule from `22:00` to `02:00` remains active until `02:00` on Tuesday.
 
-Ogni schedule deve bloccare almeno un sito tramite una lista selezionata o **Blocca anche**. Una configurazione in cui **Non bloccare** esclude tutti i siti non è valida.
+Every schedule must effectively block at least one website through a selected list or **Also block**. A configuration where **Do not block** excludes every blocked website is invalid.
 
-Le date del periodo sono inclusive e possono essere lasciate vuote per creare uno schedule senza scadenza o con un solo limite. Per una fascia notturna, il periodo viene verificato rispetto al giorno in cui la fascia inizia.
+Date boundaries are inclusive and may be left empty to create a schedule with no expiration or only one boundary. For an overnight time range, the date range is evaluated against the day on which the range starts.
 
-### Eccezioni per schedule
+### Schedule exceptions
 
-Nel pannello aperto di uno schedule sono disponibili due gruppi:
+An expanded schedule contains two groups:
 
-- **Blocca anche** aggiunge domini o URL alle regole generali soltanto mentre lo schedule è attivo.
-- **Non bloccare** crea eccezioni temporanee che hanno priorità sulle normali regole di blocco.
+- **Also block** adds domains or URLs to the blocking rules only while that schedule is active.
+- **Do not block** creates temporary exceptions that take priority over blocking rules.
 
-Se più schedule sono attivi contemporaneamente, le rispettive liste vengono aggregate. Le eccezioni attive hanno priorità sulle regole di blocco, incluse quelle relative a percorsi specifici.
+When multiple schedules are active at the same time, their lists are combined. Active exceptions take priority over blocking rules, including rules for specific paths.
 
-Quando uno schedule contiene siti inseriti manualmente in **Blocca anche**, al salvataggio viene proposto di trasformarli in una nuova lista riutilizzabile. Accettando, la lista viene creata e associata automaticamente allo schedule; rifiutando, i siti rimangono personalizzazioni locali della fascia.
+When a schedule contains websites entered manually under **Also block**, saving offers to turn them into a reusable list. If accepted, the list is created and linked to the schedule automatically; otherwise, the websites remain local customizations for that schedule.
 
-## Persistenza e aggiornamento
+## Persistence and updates
 
-Impostazioni, schedule, siti e tema vengono salvati in `chrome.storage.local` e rimangono disponibili dopo la chiusura di Chrome o il riavvio del computer.
+Settings, schedules, websites, and theme preferences are stored in `chrome.storage.local` and remain available after Chrome is closed or the computer is restarted.
 
-Un allarme interno rivaluta gli schedule all’inizio di ogni minuto. Lo stato viene inoltre ricalcolato all’avvio di Chrome, all’apertura del popup e dopo ogni salvataggio.
+An internal alarm reevaluates schedules at the beginning of every minute. State is also recalculated when Chrome starts, when the popup opens, and after each save.
 
-## Struttura principale
+## Project structure
 
-- `src/background/`: stato persistente, schedule e regole dinamiche di blocco.
-- `src/options/`: pagina impostazioni.
-- `src/popup/`: popup dell’estensione.
-- `src/blocked/`: pagina mostrata quando una navigazione viene bloccata.
-- `src/shared/`: tema condiviso tra le pagine.
+- `src/background/`: persistent state, schedules, and dynamic blocking rules.
+- `src/options/`: settings page.
+- `src/popup/`: extension popup.
+- `src/blocked/`: page displayed when navigation is blocked.
+- `src/shared/`: theme shared across pages.
 
-Le icone dell’interfaccia provengono da [Lucide](https://lucide.dev/) e sono distribuite con licenza ISC.
+Interface icons come from [Lucide](https://lucide.dev/) and are distributed under the ISC license.
